@@ -276,9 +276,17 @@
   </div>
 
   <script>
-    // GANTI DENGAN GOOGLE SHEET ID KAMU
-    const SHEET_ID = '1ewlfQVKiY72wIxWh_GgtuEFIA1xWtcsw6stKaLbYnLQ';
+    // PILIH SALAH SATU METHOD:
+    
+    // METHOD 1: Langsung dari Google Sheets (Sheet harus public)
+    const USE_DIRECT_SHEETS = false;
+    const SHEET_ID = '1ewlfCWKiY72wkWh_GqtuEf1A1xWtcsw6stKaLbYnLQ';
     const SHEET_NAME = 'DaftarPendaki';
+    
+    // METHOD 2: Via Apps Script API (Recommended - lebih aman)
+    const USE_APPS_SCRIPT = true;
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_APPS_SCRIPT_URL/exec';
+    // GANTI URL di atas dengan URL deployment Apps Script kamu!
     
     let allData = [];
     let currentFilter = 'all';
@@ -301,35 +309,71 @@
         document.getElementById('dataTable').style.display = 'none';
         document.getElementById('noData').style.display = 'none';
 
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-        const response = await fetch(url);
-        const text = await response.text();
-        
-        // Parse Google Sheets JSON response
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        const rows = json.table.rows;
+        let rows;
 
-        allData = rows.map(row => ({
-          hikername: row.c[2]?.v || '',
-          nik: row.c[3]?.v || '',
-          groupname: row.c[1]?.v || 'Individu',
-          uniqueid: row.c[6]?.v || '',
-          statPos1: row.c[7]?.v || '',
-          timePos1: row.c[8]?.v || '',
-          statPos2: row.c[9]?.v || '',
-          timePos2: row.c[10]?.v || '',
-          statPos3: row.c[11]?.v || '',
-          timePos3: row.c[12]?.v || '',
-          statPos4: row.c[13]?.v || '',
-          timePos4: row.c[14]?.v || '',
-          statPos5: row.c[15]?.v || '',
-          timePos5: row.c[16]?.v || '',
-          statPos6: row.c[17]?.v || '',
-          timePos6: row.c[18]?.v || '',
-          latestActivity: row.c[19]?.v || '',
-          latestStatus: row.c[20]?.v || ''
-        }));
+        if (USE_APPS_SCRIPT) {
+          // METHOD 2: Via Apps Script API
+          const response = await fetch(`${APPS_SCRIPT_URL}?dashboard=true`);
+          const result = await response.json();
+          
+          if (!result.success) {
+            throw new Error(result.error);
+          }
+          
+          rows = result.data.map(row => ({
+            hikername: row.hikername || '',
+            nik: row.nik || '',
+            groupname: row.groupname || 'Individu',
+            uniqueid: row.uniqueid || '',
+            statPos1: row.StatPos1 || '',
+            timePos1: row.timePos1 || '',
+            statPos2: row.StatPos2 || '',
+            timePos2: row.timePos2 || '',
+            statPos3: row.StatPos3 || '',
+            timePos3: row.timePos3 || '',
+            statPos4: row.StatPos4 || '',
+            timePos4: row.timePos4 || '',
+            statPos5: row.StatPos5 || '',
+            timePos5: row.timePos5 || '',
+            statPos6: row.StatPos6 || '',
+            timePos6: row.timePos6 || '',
+            latestActivity: row.LatestActivity || '',
+            latestStatus: row.LatestStatus || ''
+          }));
+          
+        } else {
+          // METHOD 1: Langsung dari Google Sheets
+          const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+          const response = await fetch(url);
+          const text = await response.text();
+          
+          // Parse Google Sheets JSON response
+          const json = JSON.parse(text.substr(47).slice(0, -2));
+          const sheetRows = json.table.rows;
 
+          rows = sheetRows.map(row => ({
+            hikername: row.c[2]?.v || '',
+            nik: row.c[3]?.v || '',
+            groupname: row.c[1]?.v || 'Individu',
+            uniqueid: row.c[6]?.v || '',
+            statPos1: row.c[7]?.v || '',
+            timePos1: row.c[8]?.v || '',
+            statPos2: row.c[9]?.v || '',
+            timePos2: row.c[10]?.v || '',
+            statPos3: row.c[11]?.v || '',
+            timePos3: row.c[12]?.v || '',
+            statPos4: row.c[13]?.v || '',
+            timePos4: row.c[14]?.v || '',
+            statPos5: row.c[15]?.v || '',
+            timePos5: row.c[16]?.v || '',
+            statPos6: row.c[17]?.v || '',
+            timePos6: row.c[18]?.v || '',
+            latestActivity: row.c[19]?.v || '',
+            latestStatus: row.c[20]?.v || ''
+          }));
+        }
+
+        allData = rows;
         updateStats();
         renderTable();
 
@@ -343,7 +387,13 @@
 
       } catch (error) {
         console.error('Error loading data:', error);
-        document.getElementById('loading').innerHTML = '❌ Error memuat data. Pastikan Sheet ID sudah benar!';
+        document.getElementById('loading').innerHTML = `
+          ❌ Error memuat data: ${error.message}<br><br>
+          <strong>Troubleshooting:</strong><br>
+          1. Pastikan Sheet sudah di-publish ke web<br>
+          2. Pastikan Sheet ID sudah benar<br>
+          3. Atau gunakan METHOD 2 (Apps Script API)
+        `;
       }
     }
 
