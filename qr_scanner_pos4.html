@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanner QR - Pos 4</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+      text-align: center;
+    }
+    .header {
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #667eea;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .pos-badge {
+      background: #ff6b6b;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: inline-block;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    #reader {
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    .info-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      display: none;
+    }
+    .info-box.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .success {
+      background: #d4edda;
+      border: 2px solid #28a745;
+      color: #155724;
+    }
+    .error {
+      background: #f8d7da;
+      border: 2px solid #dc3545;
+      color: #721c24;
+    }
+    .info-box h3 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+    .info-detail {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+    .info-detail strong {
+      display: inline-block;
+      min-width: 120px;
+      text-align: left;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .status-naik { background: #28a745; color: white; }
+    .status-rest { background: #ffc107; color: #000; }
+    .status-camping { background: #17a2b8; color: white; }
+    .status-summit { background: #6f42c1; color: white; }
+    .status-exit { background: #6c757d; color: white; }
+    .status-turun { background: #fd7e14; color: white; }
+    .status-sos { 
+      background: #dc3545; 
+      color: white; 
+      animation: blink 1s infinite;
+      font-size: 16px;
+      padding: 10px 25px;
+    }
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0.5; }
+    }
+    .loading {
+      display: none;
+      margin: 20px 0;
+    }
+    .loading.show {
+      display: block;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .stat-card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+    .stat-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+    #startButton {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 20px 0;
+    }
+    #startButton:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    #startButton:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .url-warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      color: #856404;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .url-warning strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📸 QR Scanner Pendakian</h1>
+      <div class="pos-badge">🏔️ POS 4</div>
+    </div>
+
+    <!-- WARNING: Ganti URL Apps Script -->
+    <div class="url-warning" id="urlWarning">
+      <strong>⚠️ PERHATIAN!</strong>
+      Ganti URL Apps Script di baris 198 dengan URL deployment kamu!
+    </div>
+
+    <button id="startButton">🎥 Mulai Scanning</button>
+
+    <div id="reader"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 10px; color: #667eea; font-weight: bold;">Memproses data...</p>
+    </div>
+
+    <div class="info-box" id="infoBox"></div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="scanCount">0</div>
+        <div class="stat-label">Total Scan Hari Ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="lastScanTime">--:--</div>
+        <div class="stat-label">Scan Terakhir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Library QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <script>
+    // ============================================================
+    // GANTI URL INI DENGAN URL APPS SCRIPT DEPLOYMENT KAMU!
+    // ============================================================
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec";
+    
+    // Nama sheet untuk pos ini
+    const POS_NAME = "StatusPos4";
+    
+    // ============================================================
+    
+    let html5QrCode;
+    let scanCount = 0;
+    let isProcessing = false;
+
+    const startButton = document.getElementById('startButton');
+    const infoBox = document.getElementById('infoBox');
+    const loading = document.getElementById('loading');
+    const scanCountEl = document.getElementById('scanCount');
+    const lastScanTimeEl = document.getElementById('lastScanTime');
+    const urlWarning = document.getElementById('urlWarning');
+
+    // Cek apakah URL sudah diganti
+    if (scriptURL.includes('AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ')) {
+      // URL masih default, tampilkan warning
+      urlWarning.style.display = 'block';
+    } else {
+      // URL sudah diganti, sembunyikan warning
+      urlWarning.style.display = 'none';
+    }
+
+    // Status mapping dengan emoji dan warna
+    const statusConfig = {
+      'CHECK-IN-NAIK': { label: 'Check-in Naik', class: 'status-naik', emoji: '⬆️' },
+      'REST-BREAK': { label: 'Istirahat', class: 'status-rest', emoji: '☕' },
+      'CAMPING-OVERNIGHT': { label: 'Camping', class: 'status-camping', emoji: '⛺' },
+      'SUMMIT-REACHED': { label: 'Mencapai Puncak', class: 'status-summit', emoji: '🏔️' },
+      'CHECK-OUT-EXIT': { label: 'Check-out', class: 'status-exit', emoji: '🚪' },
+      'CHECK-IN-TURUN': { label: 'Check-in Turun', class: 'status-turun', emoji: '⬇️' },
+      'SOS-EMERGENCY': { label: '🚨 DARURAT', class: 'status-sos', emoji: '🆘' }
+    };
+
+    startButton.addEventListener('click', () => {
+      startScanning();
+      startButton.disabled = true;
+      startButton.textContent = '🔄 Scanner Aktif';
+    });
+
+    function startScanning() {
+      html5QrCode = new Html5Qrcode("reader");
+      
+      html5QrCode.start(
+        { facingMode: "environment" }, // Gunakan kamera belakang
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        onScanSuccess,
+        onScanError
+      ).catch(err => {
+        console.error("Error starting scanner:", err);
+        showError("❌ Gagal mengakses kamera. Pastikan izin kamera diberikan.");
+        startButton.disabled = false;
+        startButton.textContent = '🎥 Mulai Scanning';
+      });
+    }
+
+    async function onScanSuccess(decodedText) {
+      if (isProcessing) return;
+      
+      isProcessing = true;
+      
+      // Stop scanner sementara
+      html5QrCode.pause();
+      
+      // Show loading
+      loading.classList.add('show');
+      infoBox.classList.remove('show');
+
+      try {
+        // Kirim ke Apps Script
+        const url = `${scriptURL}?scan=${encodeURIComponent(decodedText)}&pos=${POS_NAME}`;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        loading.classList.remove('show');
+
+        if (result.success) {
+          showSuccess(result.data);
+          scanCount++;
+          scanCountEl.textContent = scanCount;
+          
+          // Auto close notification setelah 2 detik
+          setTimeout(() => {
+            infoBox.classList.remove('show');
+            html5QrCode.resume();
+            isProcessing = false;
+          }, 2000);
+        } else {
+          showError(result.error);
+          setTimeout(() => {
+            infoBox.classList.remove('show');
+            html5QrCode.resume();
+            isProcessing = false;
+          }, 3000);
+        }
+      } catch (error) {
+        loading.classList.remove('show');
+        showError('❌ Gagal mengirim data: ' + error.message);
+        setTimeout(() => {
+          infoBox.classList.remove('show');
+          html5QrCode.resume();
+          isProcessing = false;
+        }, 3000);
+      }
+    }
+
+    function onScanError(error) {
+      // Ignore scan errors (terlalu banyak noise dari kamera)
+    }
+
+    function showSuccess(data) {
+      const statusInfo = statusConfig[data.status] || { 
+        label: data.status, 
+        class: '', 
+        emoji: '✅' 
+      };
+      
+      infoBox.className = 'info-box success show';
+      infoBox.innerHTML = `
+        <h3>✅ Scan Berhasil!</h3>
+        <div class="info-detail"><strong>Nama:</strong> ${data.hikername}</div>
+        <div class="info-detail"><strong>NIK:</strong> ${data.nik}</div>
+        <div class="info-detail"><strong>Kelompok:</strong> ${data.groupname}</div>
+        <div class="info-detail"><strong>Waktu:</strong> ${data.timestamp}</div>
+        <div class="status-badge ${statusInfo.class}">
+          ${statusInfo.emoji} ${statusInfo.label}
+        </div>
+      `;
+      
+      // Update last scan time
+      const now = new Date();
+      lastScanTimeEl.textContent = now.toLocaleTimeString('id-ID', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      // Play success sound
+      playBeep();
+    }
+
+    function showError(message) {
+      infoBox.className = 'info-box error show';
+      infoBox.innerHTML = `
+        <h3>❌ Error</h3>
+        <p>${message}</p>
+        <p style="margin-top: 10px; font-size: 12px;">
+          Pastikan pendaki sudah terdaftar di sistem.
+        </p>
+      `;
+    }
+
+    function playBeep() {
+      // Simple beep sound menggunakan Web Audio API
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {
+        // Ignore audio errors
+      }
+    }
+
+    // Load scan count dari localStorage
+    window.addEventListener('load', () => {
+      const today = new Date().toDateString();
+      const savedCount = localStorage.getItem('scanCount_' + today);
+      if (savedCount) {
+        scanCount = parseInt(savedCount);
+        scanCountEl.textContent = scanCount;
+      }
+    });
+
+    // Save scan count ke localStorage
+    window.addEventListener('beforeunload', () => {
+      const today = new Date().toDateString();
+      localStorage.setItem('scanCount_' + today, scanCount);
+    });
+  </script>
+</body>
+</html>
