@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scanner QR - Pos 3</title>
+  <title>Scanner QR - Pos 2</title>
   <style>
     * {
       margin: 0;
@@ -204,13 +204,7 @@
   <div class="container">
     <div class="header">
       <h1>📸 QR Scanner Pendakian</h1>
-      <div class="pos-badge">🏔️ POS 3</div>
-    </div>
-
-    <!-- WARNING: Ganti URL Apps Script -->
-    <div class="url-warning" id="urlWarning">
-      <strong>⚠️ PERHATIAN!</strong>
-      Jangan sampai salah scan barcode!
+      <div class="pos-badge">🏔️ POS 2</div>
     </div>
 
     <button id="startButton">🎥 Mulai Scanning</button>
@@ -246,7 +240,7 @@
     const scriptURL = "https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec";
     
     // Nama sheet untuk pos ini
-    const POS_NAME = "StatusPos3";
+    const POS_NAME = "StatusPos2";
     
     // ============================================================
     
@@ -259,16 +253,6 @@
     const loading = document.getElementById('loading');
     const scanCountEl = document.getElementById('scanCount');
     const lastScanTimeEl = document.getElementById('lastScanTime');
-    const urlWarning = document.getElementById('urlWarning');
-
-    // Cek apakah URL sudah diganti
-    if (scriptURL.includes('AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ')) {
-      // URL masih default, tampilkan warning
-      urlWarning.style.display = 'block';
-    } else {
-      // URL sudah diganti, sembunyikan warning
-      urlWarning.style.display = 'none';
-    }
 
     // Status mapping dengan emoji dan warna
     const statusConfig = {
@@ -424,21 +408,50 @@
       }
     }
 
-    // Load scan count dari localStorage
+    // Load scan count dari localStorage (per pos per hari)
     window.addEventListener('load', () => {
       const today = new Date().toDateString();
-      const savedCount = localStorage.getItem('scanCount_' + today);
+      const storageKey = `scanCount_${POS_NAME}_${today}`;
+      const savedCount = localStorage.getItem(storageKey);
+      
       if (savedCount) {
         scanCount = parseInt(savedCount);
         scanCountEl.textContent = scanCount;
       }
+      
+      // Clean up old localStorage keys (older than 7 days)
+      cleanOldStorageKeys();
     });
 
-    // Save scan count ke localStorage
+    // Save scan count ke localStorage (per pos per hari)
     window.addEventListener('beforeunload', () => {
       const today = new Date().toDateString();
-      localStorage.setItem('scanCount_' + today, scanCount);
+      const storageKey = `scanCount_${POS_NAME}_${today}`;
+      localStorage.setItem(storageKey, scanCount);
     });
+
+    // Clean up localStorage keys yang sudah lama
+    function cleanOldStorageKeys() {
+      const now = new Date();
+      const keys = Object.keys(localStorage);
+      
+      keys.forEach(key => {
+        if (key.startsWith('scanCount_')) {
+          const parts = key.split('_');
+          if (parts.length >= 3) {
+            // Extract date from key: scanCount_StatusPos2_Mon Oct 27 2025
+            const dateStr = parts.slice(2).join('_');
+            const keyDate = new Date(dateStr);
+            const diffDays = (now - keyDate) / (1000 * 60 * 60 * 24);
+            
+            // Hapus key yang lebih dari 7 hari
+            if (diffDays > 7) {
+              localStorage.removeItem(key);
+            }
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
