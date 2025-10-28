@@ -8,8 +8,7 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background:#f0f2f5;
-      padding:20px;
+      background:#f0f2f5; padding:20px;
     }
     .header {
       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
@@ -19,8 +18,15 @@
     .header h1 { font-size:32px; margin-bottom:10px; }
     .header p { opacity:0.9; font-size:14px; }
 
-    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-bottom:30px; }
-    .stat-card { background:white; padding:25px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-left:4px solid #667eea; }
+    .stats-grid { 
+      display:grid; 
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); 
+      gap:20px; margin-bottom:30px; 
+    }
+    .stat-card { 
+      background:white; padding:25px; border-radius:12px; 
+      box-shadow:0 2px 8px rgba(0,0,0,0.1); border-left:4px solid #667eea; 
+    }
     .stat-card.warning { border-left-color:#ffc107; }
     .stat-card.danger { border-left-color:#dc3545; }
     .stat-card.success { border-left-color:#28a745; }
@@ -34,22 +40,41 @@
     }
     .search-box { flex:1; min-width:250px; }
     .search-box input {
-      width:100%; padding:10px 15px; border:2px solid #e0e0e0; border-radius:8px; font-size:14px;
+      width:100%; padding:10px 15px; border:2px solid #e0e0e0; 
+      border-radius:8px; font-size:14px;
     }
     .search-box input:focus { outline:none; border-color:#667eea; }
-    .filter-btn { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; transition:all .3s; }
+    .filter-btn { 
+      padding:10px 20px; border:none; border-radius:8px; 
+      cursor:pointer; font-weight:bold; transition:all .3s; 
+    }
     .filter-btn.active { background:#667eea; color:white; }
     .filter-btn:not(.active) { background:#e0e0e0; color:#666; }
-    .refresh-btn { background:#28a745; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-    .export-btn { background:#17a2b8; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+    .refresh-btn { 
+      background:#28a745; color:white; padding:10px 20px; 
+      border:none; border-radius:8px; cursor:pointer; font-weight:bold; 
+    }
+    .export-btn { 
+      background:#17a2b8; color:white; padding:10px 20px; 
+      border:none; border-radius:8px; cursor:pointer; font-weight:bold; 
+    }
 
-    .table-container { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; }
+    .table-container { 
+      background:white; border-radius:12px; 
+      box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; 
+    }
     table { width:100%; border-collapse:collapse; }
-    th { background:#667eea; color:white; padding:15px; text-align:left; font-weight:600; }
+    th { 
+      background:#667eea; color:white; padding:15px; 
+      text-align:left; font-weight:600; position:sticky; top:0; z-index:10;
+    }
     td { padding:12px 15px; border-bottom:1px solid #e0e0e0; }
     tr:hover { background:#f8f9fa; }
 
-    .status-badge { display:inline-block; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:bold; }
+    .status-badge { 
+      display:inline-block; padding:5px 12px; border-radius:15px; 
+      font-size:11px; font-weight:bold; 
+    }
     .status-naik{background:#d4edda;color:#155724;}
     .status-rest{background:#fff3cd;color:#856404;}
     .status-camping{background:#d1ecf1;color:#0c5460;}
@@ -58,12 +83,83 @@
     .status-turun{background:#ffeaa7;color:#d63031;}
     .status-sos{background:#f8d7da;color:#721c24;animation:blink 1s infinite;}
     @keyframes blink{0%,50%,100%{opacity:1;}25%,75%{opacity:0.6;}}
-    .pos-tracker{display:flex;gap:5px;align-items:center;}
-    .pos-dot{width:12px;height:12px;border-radius:50%;background:#e0e0e0;}
-    .pos-dot.active{background:#28a745;box-shadow:0 0 0 3px rgba(40,167,69,0.3);}
+
+    .pos-timeline {
+      display:flex; 
+      align-items:center; 
+      gap:8px; 
+      padding:10px 0;
+      overflow-x:auto;
+    }
+    .pos-item {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:5px;
+      min-width:60px;
+    }
+    .pos-dot {
+      width:24px; height:24px; border-radius:50%;
+      background:#e0e0e0; border:3px solid #e0e0e0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:10px; font-weight:bold; color:#999;
+      position:relative;
+    }
+    .pos-dot.active {
+      background:#28a745; border-color:#28a745; color:white;
+      box-shadow:0 0 0 4px rgba(40,167,69,0.2);
+    }
+    .pos-dot.current {
+      background:#667eea; border-color:#667eea; color:white;
+      box-shadow:0 0 0 4px rgba(102,126,234,0.3);
+      animation:pulse 2s infinite;
+    }
+    .pos-dot.predicted {
+      background:white; border:3px dashed #ff9800; color:#ff9800;
+      box-shadow:0 0 0 4px rgba(255,152,0,0.1);
+    }
+    @keyframes pulse {
+      0%, 100% { transform:scale(1); }
+      50% { transform:scale(1.1); }
+    }
+    .pos-arrow {
+      width:20px; height:2px; background:#ddd;
+      position:relative;
+    }
+    .pos-arrow.active {
+      background:#28a745;
+    }
+    .pos-arrow::after {
+      content:''; position:absolute; right:-4px; top:-3px;
+      width:0; height:0;
+      border-left:8px solid #ddd;
+      border-top:4px solid transparent;
+      border-bottom:4px solid transparent;
+    }
+    .pos-arrow.active::after {
+      border-left-color:#28a745;
+    }
+    .pos-label {
+      font-size:10px; color:#666; text-align:center;
+      white-space:nowrap;
+    }
+    .pos-time {
+      font-size:9px; color:#999; text-align:center;
+    }
+    .prediction-badge {
+      background:#ff9800; color:white;
+      padding:2px 6px; border-radius:10px;
+      font-size:9px; font-weight:bold;
+      margin-top:2px;
+    }
+    .status-info {
+      display:flex; flex-direction:column; gap:5px;
+    }
+    .status-main {
+      font-weight:bold; color:#667eea; font-size:13px;
+    }
     .loading{text-align:center;padding:50px;color:#667eea;font-size:18px;}
     .no-data{text-align:center;padding:50px;color:#999;}
-    .time-info{font-size:11px;color:#999;}
   </style>
 </head>
 <body>
@@ -73,15 +169,32 @@
   </div>
 
   <div class="stats-grid" id="statsGrid">
-    <div class="stat-card"><div class="stat-number" id="totalPendaki">-</div><div class="stat-label">Total Pendaki</div></div>
-    <div class="stat-card success"><div class="stat-number" id="diJalur">-</div><div class="stat-label">Sedang di Jalur</div></div>
-    <div class="stat-card"><div class="stat-number" id="puncak">-</div><div class="stat-label">Mencapai Puncak</div></div>
-    <div class="stat-card warning"><div class="stat-number" id="istirahat">-</div><div class="stat-label">Istirahat/Camping</div></div>
-    <div class="stat-card danger"><div class="stat-number" id="sos">-</div><div class="stat-label">⚠️ SOS Emergency</div></div>
+    <div class="stat-card">
+      <div class="stat-number" id="totalPendaki">-</div>
+      <div class="stat-label">Total Pendaki</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-number" id="diJalur">-</div>
+      <div class="stat-label">Sedang di Jalur</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="puncak">-</div>
+      <div class="stat-label">Mencapai Puncak</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-number" id="istirahat">-</div>
+      <div class="stat-label">Istirahat/Camping</div>
+    </div>
+    <div class="stat-card danger">
+      <div class="stat-number" id="sos">-</div>
+      <div class="stat-label">⚠️ SOS Emergency</div>
+    </div>
   </div>
 
   <div class="controls">
-    <div class="search-box"><input type="text" id="searchBox" placeholder="🔍 Cari nama pendaki..."></div>
+    <div class="search-box">
+      <input type="text" id="searchBox" placeholder="🔍 Cari nama pendaki atau NIK...">
+    </div>
     <button class="filter-btn active" data-filter="all">Semua</button>
     <button class="filter-btn" data-filter="active">Aktif di Jalur</button>
     <button class="filter-btn" data-filter="sos">🆘 SOS</button>
@@ -91,15 +204,16 @@
 
   <div class="table-container">
     <div class="loading" id="loading">⏳ Memuat data...</div>
-    <div class="no-data" id="noData" style="display:none;">📭 Belum ada data pendaki</div>
+    <div class="no-data" id="noData" style="display:none;">
+      📭 Belum ada data pendaki
+    </div>
     <table id="dataTable" style="display:none;">
       <thead>
         <tr>
           <th>Nama Pendaki</th>
           <th>Kelompok</th>
-          <th>Progress Pos</th>
-          <th>Status Terakhir</th>
-          <th>Waktu Update</th>
+          <th>Timeline Perjalanan (Pos 1-9)</th>
+          <th>Status & Aktivitas</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -107,17 +221,24 @@
   </div>
 
   <script>
+    // GANTI dengan URL deployment Apps Script kamu
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec';
+    
     let allData = [];
     let currentFilter = 'all';
 
+    const posNames = {
+      1: 'Pos 1', 2: 'Pos 2', 3: 'Pos 3', 4: 'Pos 4', 5: 'Pos 5',
+      6: 'Pos 6', 7: 'Pos 7', 8: 'Pos 8', 9: 'Puncak'
+    };
+
     const statusConfig = {
-      'CHECK-IN-NAIK': { class:'status-naik', label:'Naik ⬆️' },
-      'REST-BREAK': { class:'status-rest', label:'Istirahat 🛑' },
-      'CAMPING-OVERNIGHT': { class:'status-camping', label:'Camping ⛺' },
-      'SUMMIT-REACHED': { class:'status-summit', label:'Puncak 🏔️' },
-      'CHECK-IN-TURUN': { class:'status-turun', label:'Turun ⬇️' },
-      'CHECK-OUT-EXIT': { class:'status-exit', label:'Selesai 🏁' },
+      'CHECK-IN-NAIK': { class:'status-naik', label:'🔼 Naik' },
+      'REST-BREAK': { class:'status-rest', label:'☕ Istirahat' },
+      'CAMPING-OVERNIGHT': { class:'status-camping', label:'⛺ Camping' },
+      'SUMMIT-REACHED': { class:'status-summit', label:'🏔️ Puncak' },
+      'CHECK-IN-TURUN': { class:'status-turun', label:'🔽 Turun' },
+      'CHECK-OUT-EXIT': { class:'status-exit', label:'✅ Selesai' },
       'SOS-EMERGENCY': { class:'status-sos', label:'🚨 SOS' }
     };
 
@@ -129,14 +250,32 @@
 
         const response = await fetch(`${APPS_SCRIPT_URL}?dashboard=true`);
         const result = await response.json();
+        
         if(!result.success) throw new Error(result.error);
+        
         allData = result.data.map(r=>({
-          hikername:r.hikername||'',
-          groupname:r.groupname||'Individu',
-          latestStatus:r.LatestStatus||'',
-          latestActivity:r.LatestActivity||'',
-          ...r
+          hikername: r.hikername || '',
+          nik: r.nik || '',
+          groupname: r.groupname || 'Individu',
+          uniqueid: r.uniqueid || '',
+          latestStatus: r.LatestStatus || '',
+          latestActivity: r.LatestActivity || '',
+          StatPos1: r.StatPos1 || '', timePos1: r.timePos1 || '',
+          StatPos2: r.StatPos2 || '', timePos2: r.timePos2 || '',
+          StatPos3: r.StatPos3 || '', timePos3: r.timePos3 || '',
+          StatPos4: r.StatPos4 || '', timePos4: r.timePos4 || '',
+          StatPos5: r.StatPos5 || '', timePos5: r.timePos5 || '',
+          StatPos6: r.StatPos6 || '', timePos6: r.timePos6 || '',
+          StatPos7: r.StatPos7 || '', timePos7: r.timePos7 || '',
+          StatPos8: r.StatPos8 || '', timePos8: r.timePos8 || '',
+          StatPos9: r.StatPos9 || '', timePos9: r.timePos9 || '',
+          PredPos1: r.PredPos1 || '', PredPos2: r.PredPos2 || '',
+          PredPos3: r.PredPos3 || '', PredPos4: r.PredPos4 || '',
+          PredPos5: r.PredPos5 || '', PredPos6: r.PredPos6 || '',
+          PredPos7: r.PredPos7 || '', PredPos8: r.PredPos8 || '',
+          PredPos9: r.PredPos9 || ''
         }));
+
         updateStats();
         renderTable();
         document.getElementById('loading').style.display='none';
@@ -162,51 +301,207 @@
       document.getElementById('sos').textContent=s.sos;
     }
 
+    function getLastPos(row) {
+      for (let i = 9; i >= 1; i--) {
+        if (row[`timePos${i}`]) {
+          return {
+            pos: i,
+            status: row[`StatPos${i}`],
+            time: row[`timePos${i}`]
+          };
+        }
+      }
+      return null;
+    }
+
+    function getDirection(row) {
+      const lastPos = getLastPos(row);
+      if (!lastPos) return null;
+      
+      const status = lastPos.status;
+      if (/NAIK|SUMMIT|REST|CAMPING/i.test(status) && !/TURUN|EXIT/i.test(status)) {
+        return 'NAIK';
+      } else if (/TURUN|EXIT/i.test(status)) {
+        return 'TURUN';
+      }
+      return null;
+    }
+
+    function renderTimeline(row) {
+      const lastPos = getLastPos(row);
+      const direction = getDirection(row);
+      
+      let html = '<div class="pos-timeline">';
+      
+      for (let i = 1; i <= 9; i++) {
+        const hasPassed = row[`timePos${i}`] ? true : false;
+        const isCurrent = lastPos && lastPos.pos === i;
+        const predTime = row[`PredPos${i}`];
+        const isPredicted = !hasPassed && predTime;
+        
+        // Pos dot
+        let dotClass = '';
+        let dotContent = i;
+        if (isCurrent) {
+          dotClass = 'current';
+        } else if (hasPassed) {
+          dotClass = 'active';
+        } else if (isPredicted) {
+          dotClass = 'predicted';
+        }
+        
+        const actualTime = row[`timePos${i}`];
+        const displayTime = actualTime ? formatTime(actualTime) : (isPredicted ? formatTime(predTime) : '');
+        
+        html += `<div class="pos-item">`;
+        html += `<div class="pos-dot ${dotClass}">${dotContent}</div>`;
+        html += `<div class="pos-label">${posNames[i]}</div>`;
+        
+        if (displayTime) {
+          html += `<div class="pos-time">${displayTime}</div>`;
+        }
+        
+        if (isPredicted) {
+          html += `<div class="prediction-badge">Prediksi</div>`;
+        }
+        
+        html += `</div>`;
+        
+        // Arrow
+        if (i < 9) {
+          const arrowActive = hasPassed ? 'active' : '';
+          html += `<div class="pos-arrow ${arrowActive}"></div>`;
+        }
+      }
+      
+      html += '</div>';
+      return html;
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      const d = new Date(timeStr);
+      return d.toLocaleString('id-ID', { 
+        day: '2-digit', 
+        month: 'short', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+
     function renderTable(){
       const q=document.getElementById('searchBox').value.toLowerCase();
-      let data=allData.filter(r=>r.hikername.toLowerCase().includes(q));
-      if(currentFilter==='active')data=data.filter(r=>['CHECK-IN-NAIK','CHECK-IN-TURUN','REST-BREAK','CAMPING-OVERNIGHT'].includes(r.latestStatus));
-      if(currentFilter==='sos')data=data.filter(r=>r.latestStatus==='SOS-EMERGENCY');
+      let data=allData.filter(r=>
+        r.hikername.toLowerCase().includes(q) || 
+        r.nik.toLowerCase().includes(q)
+      );
+      
+      if(currentFilter==='active') {
+        data=data.filter(r=>['CHECK-IN-NAIK','CHECK-IN-TURUN','REST-BREAK','CAMPING-OVERNIGHT'].includes(r.latestStatus));
+      }
+      if(currentFilter==='sos') {
+        data=data.filter(r=>r.latestStatus==='SOS-EMERGENCY');
+      }
 
-      const tbody=document.getElementById('tableBody'); tbody.innerHTML='';
+      const tbody=document.getElementById('tableBody'); 
+      tbody.innerHTML='';
+      
       data.forEach(r=>{
-        const posTracker=`<div class="pos-tracker">${
-          Array.from({length:9},(_,i)=>`<div class="pos-dot ${r['StatPos'+(i+1)]?'active':''}" title="Pos ${i+1}: ${r['StatPos'+(i+1)]||'Belum'}"></div>`).join('')
-        }</div>`;
-        const info=statusConfig[r.latestStatus]||{class:'',label:r.latestStatus||'-'};
-        const badge=`<span class="status-badge ${info.class}">${info.label}</span>`;
-        const time=r.latestActivity?new Date(r.latestActivity).toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'}):'-';
-        const rel=getTimeAgo(r.latestActivity);
+        const timeline = renderTimeline(r);
+        const info = statusConfig[r.latestStatus] || {class:'', label:r.latestStatus||'-'};
+        const badge = `<span class="status-badge ${info.class}">${info.label}</span>`;
+        
+        const lastPos = getLastPos(r);
+        const lastPosName = lastPos ? posNames[lastPos.pos] : '-';
+        const lastTime = lastPos ? formatTime(lastPos.time) : '-';
+        const timeAgo = lastPos ? getTimeAgo(lastPos.time) : '';
+        
+        const direction = getDirection(r);
+        let nextPrediction = '';
+        if (direction === 'NAIK' && lastPos && lastPos.pos < 9) {
+          const nextPos = lastPos.pos + 1;
+          const predTime = r[`PredPos${nextPos}`];
+          if (predTime) {
+            nextPrediction = `<div style="color:#ff9800;font-size:11px;margin-top:5px;">
+              📍 Prediksi ${posNames[nextPos]}: ${formatTime(predTime)}
+            </div>`;
+          }
+        } else if (direction === 'TURUN' && lastPos && lastPos.pos > 1) {
+          const nextPos = lastPos.pos - 1;
+          const predTime = r[`PredPos${nextPos}`];
+          if (predTime) {
+            nextPrediction = `<div style="color:#ff9800;font-size:11px;margin-top:5px;">
+              📍 Prediksi ${posNames[nextPos]}: ${formatTime(predTime)}
+            </div>`;
+          }
+        }
+        
         tbody.innerHTML+=`
           <tr>
             <td><strong>${r.hikername}</strong></td>
             <td>${r.groupname}</td>
-            <td>${posTracker}</td>
-            <td>${badge}</td>
-            <td>${time}<div class="time-info">${rel}</div></td>
+            <td>${timeline}</td>
+            <td>
+              <div class="status-info">
+                <div class="status-main">${lastPosName}</div>
+                ${badge}
+                <div style="font-size:11px;color:#999;">Update: ${lastTime}</div>
+                <div style="font-size:10px;color:#bbb;">${timeAgo}</div>
+                ${nextPrediction}
+              </div>
+            </td>
           </tr>`;
       });
     }
 
     function getTimeAgo(t){
-      if(!t)return''; const n=new Date(), p=new Date(t), d=(n-p)/60000;
-      if(d<1)return'Baru saja'; if(d<60)return`${Math.floor(d)} menit lalu`;
-      const h=d/60; if(h<24)return`${Math.floor(h)} jam lalu`;
+      if(!t)return''; 
+      const n=new Date(), p=new Date(t), d=(n-p)/60000;
+      if(d<1)return'Baru saja'; 
+      if(d<60)return`${Math.floor(d)} menit lalu`;
+      const h=d/60; 
+      if(h<24)return`${Math.floor(h)} jam lalu`;
       return`${Math.floor(h/24)} hari lalu`;
     }
 
     function exportToCSV(){
-      const csv=[['Nama','Kelompok','Status','Waktu'].join(','),
-        ...allData.map(r=>[r.hikername,r.groupname,r.latestStatus,r.latestActivity].join(','))].join('\n');
+      const csv=[
+        ['Nama','Kelompok','Status','Pos Terakhir','Waktu','Prediksi Berikutnya'].join(','),
+        ...allData.map(r=>{
+          const lastPos = getLastPos(r);
+          const lastPosName = lastPos ? posNames[lastPos.pos] : '-';
+          const lastTime = lastPos ? formatTime(lastPos.time) : '-';
+          
+          const direction = getDirection(r);
+          let pred = '-';
+          if (direction === 'NAIK' && lastPos && lastPos.pos < 9) {
+            const nextPos = lastPos.pos + 1;
+            pred = r[`PredPos${nextPos}`] ? `${posNames[nextPos]}: ${formatTime(r[`PredPos${nextPos}`])}` : '-';
+          } else if (direction === 'TURUN' && lastPos && lastPos.pos > 1) {
+            const nextPos = lastPos.pos - 1;
+            pred = r[`PredPos${nextPos}`] ? `${posNames[nextPos]}: ${formatTime(r[`PredPos${nextPos}`])}` : '-';
+          }
+          
+          return [r.hikername, r.groupname, r.latestStatus, lastPosName, lastTime, pred].join(',');
+        })
+      ].join('\n');
+      
       const blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url;a.download=`monitoring-${new Date().toISOString().split('T')[0]}.csv`;a.click();URL.revokeObjectURL(url);
+      const a=document.createElement('a'); 
+      a.href=url;
+      a.download=`monitoring-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     document.getElementById('searchBox').addEventListener('input',renderTable);
     document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',function(){
       document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
-      this.classList.add('active'); currentFilter=this.dataset.filter; renderTable();
+      this.classList.add('active'); 
+      currentFilter=this.dataset.filter; 
+      renderTable();
     }));
+    
     setInterval(loadData,30000);
     loadData();
   </script>
