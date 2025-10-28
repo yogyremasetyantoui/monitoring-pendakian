@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scanner QR - Pos 2</title>
+  <title>Scanner QR - Pos 3</title>
   <style>
     * {
       margin: 0;
@@ -240,7 +240,7 @@
     const scriptURL = "https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec";
     
     // Nama sheet untuk pos ini
-    const POS_NAME = "StatusPos2";
+    const POS_NAME = "StatusPos3";
     
     // ============================================================
     
@@ -439,7 +439,7 @@
         if (key.startsWith('scanCount_')) {
           const parts = key.split('_');
           if (parts.length >= 3) {
-            // Extract date from key: scanCount_StatusPos2_Mon Oct 27 2025
+            // Extract date from key: scanCount_StatusPos3_Mon Oct 27 2025
             const dateStr = parts.slice(2).join('_');
             const keyDate = new Date(dateStr);
             const diffDays = (now - keyDate) / (1000 * 60 * 60 * 24);
