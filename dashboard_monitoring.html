@@ -59,6 +59,100 @@
       border:none; border-radius:8px; cursor:pointer; font-weight:bold; 
     }
 
+    /* EMERGENCY ALERT SECTION */
+    .emergency-section {
+      background:#fff; border-radius:12px; padding:20px;
+      margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    .emergency-header {
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:15px; padding-bottom:10px;
+      border-bottom:3px solid #dc3545;
+    }
+    .emergency-header h2 {
+      color:#dc3545; font-size:20px; margin:0;
+    }
+    .emergency-stats {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:15px; margin-bottom:15px;
+    }
+    .emergency-stat {
+      background:#f8f9fa; padding:15px; border-radius:8px;
+      text-align:center; border-left:4px solid;
+    }
+    .emergency-stat.waspada { border-left-color:#ffc107; }
+    .emergency-stat.siaga { border-left-color:#ff9800; }
+    .emergency-stat.awas { border-left-color:#dc3545; }
+    .emergency-stat.sos { border-left-color:#000; }
+    .emergency-stat .number {
+      font-size:28px; font-weight:bold; margin-bottom:5px;
+    }
+    .emergency-stat.waspada .number { color:#ffc107; }
+    .emergency-stat.siaga .number { color:#ff9800; }
+    .emergency-stat.awas .number { color:#dc3545; }
+    .emergency-stat.sos .number { color:#000; }
+    .emergency-stat .label {
+      font-size:12px; color:#6c757d;
+    }
+
+    .emergency-table {
+      width:100%; border-collapse:collapse;
+    }
+    .emergency-table th {
+      background:#dc3545; color:white; padding:12px;
+      text-align:left; font-size:13px;
+    }
+    .emergency-table td {
+      padding:12px; border-bottom:1px solid #e0e0e0;
+      font-size:13px;
+    }
+    .emergency-table tr:hover {
+      background:#fff3cd;
+    }
+    .alert-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 12px; border-radius:20px; font-weight:bold;
+      font-size:11px;
+    }
+    .alert-badge .dot {
+      width:12px; height:12px; border-radius:50%;
+      display:inline-block;
+    }
+    .alert-waspada { background:#fff3cd; color:#856404; }
+    .alert-waspada .dot { background:#ffc107; animation:pulse-yellow 2s infinite; }
+    .alert-siaga { background:#ffe5b4; color:#cc7a00; }
+    .alert-siaga .dot { background:#ff9800; animation:pulse-orange 2s infinite; }
+    .alert-awas { background:#f8d7da; color:#721c24; }
+    .alert-awas .dot { background:#dc3545; animation:pulse-red 1.5s infinite; }
+    .alert-sos { background:#d3d3d3; color:#000; }
+    .alert-sos .dot { background:#000; animation:pulse-black 1s infinite; }
+
+    @keyframes pulse-yellow {
+      0%, 100% { box-shadow:0 0 0 0 rgba(255,193,7,0.7); }
+      50% { box-shadow:0 0 0 8px rgba(255,193,7,0); }
+    }
+    @keyframes pulse-orange {
+      0%, 100% { box-shadow:0 0 0 0 rgba(255,152,0,0.7); }
+      50% { box-shadow:0 0 0 8px rgba(255,152,0,0); }
+    }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow:0 0 0 0 rgba(220,53,69,0.7); }
+      50% { box-shadow:0 0 0 10px rgba(220,53,69,0); }
+    }
+    @keyframes pulse-black {
+      0%, 100% { box-shadow:0 0 0 0 rgba(0,0,0,0.7); }
+      50% { box-shadow:0 0 0 10px rgba(0,0,0,0); }
+    }
+
+    .delay-info {
+      font-size:11px; color:#999; margin-top:3px;
+    }
+    .no-emergency {
+      text-align:center; padding:30px; color:#28a745;
+      font-size:16px; font-weight:bold;
+    }
+
+    /* MAIN TABLE */
     .table-container { 
       background:white; border-radius:12px; 
       box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; 
@@ -85,25 +179,18 @@
     @keyframes blink{0%,50%,100%{opacity:1;}25%,75%{opacity:0.6;}}
 
     .pos-timeline {
-      display:flex; 
-      align-items:center; 
-      gap:8px; 
-      padding:10px 0;
+      display:flex; align-items:center; gap:8px; padding:10px 0;
       overflow-x:auto;
     }
     .pos-item {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:5px;
-      min-width:60px;
+      display:flex; flex-direction:column; align-items:center;
+      gap:5px; min-width:60px;
     }
     .pos-dot {
       width:24px; height:24px; border-radius:50%;
       background:#e0e0e0; border:3px solid #e0e0e0;
       display:flex; align-items:center; justify-content:center;
       font-size:10px; font-weight:bold; color:#999;
-      position:relative;
     }
     .pos-dot.active {
       background:#28a745; border-color:#28a745; color:white;
@@ -126,40 +213,28 @@
       width:20px; height:2px; background:#ddd;
       position:relative;
     }
-    .pos-arrow.active {
-      background:#28a745;
-    }
+    .pos-arrow.active { background:#28a745; }
     .pos-arrow::after {
       content:''; position:absolute; right:-4px; top:-3px;
-      width:0; height:0;
-      border-left:8px solid #ddd;
+      width:0; height:0; border-left:8px solid #ddd;
       border-top:4px solid transparent;
       border-bottom:4px solid transparent;
     }
-    .pos-arrow.active::after {
-      border-left-color:#28a745;
-    }
-    .pos-label {
-      font-size:10px; color:#666; text-align:center;
-      white-space:nowrap;
-    }
-    .pos-time {
-      font-size:9px; color:#999; text-align:center;
-    }
+    .pos-arrow.active::after { border-left-color:#28a745; }
+    .pos-label { font-size:10px; color:#666; text-align:center; white-space:nowrap; }
+    .pos-time { font-size:9px; color:#999; text-align:center; }
     .prediction-badge {
-      background:#ff9800; color:white;
-      padding:2px 6px; border-radius:10px;
-      font-size:9px; font-weight:bold;
-      margin-top:2px;
+      background:#ff9800; color:white; padding:2px 6px;
+      border-radius:10px; font-size:9px; font-weight:bold; margin-top:2px;
     }
-    .status-info {
-      display:flex; flex-direction:column; gap:5px;
-    }
-    .status-main {
-      font-weight:bold; color:#667eea; font-size:13px;
-    }
+    .status-info { display:flex; flex-direction:column; gap:5px; }
+    .status-main { font-weight:bold; color:#667eea; font-size:13px; }
     .loading{text-align:center;padding:50px;color:#667eea;font-size:18px;}
     .no-data{text-align:center;padding:50px;color:#999;}
+
+    @media (max-width:768px) {
+      .emergency-stats { grid-template-columns:repeat(2,1fr); }
+    }
   </style>
 </head>
 <body>
@@ -202,6 +277,36 @@
     <button class="export-btn" onclick="exportToCSV()">📥 Export CSV</button>
   </div>
 
+  <!-- EMERGENCY ALERT SECTION -->
+  <div class="emergency-section" id="emergencySection" style="display:none;">
+    <div class="emergency-header">
+      <h2>🚨 MONITORING DARURAT</h2>
+      <span style="color:#999;font-size:12px;">Pendaki yang melewati prediksi ETA</span>
+    </div>
+    
+    <div class="emergency-stats">
+      <div class="emergency-stat waspada">
+        <div class="number" id="countWaspada">0</div>
+        <div class="label">🟡 Waspada<br>(Delay 1+ jam)</div>
+      </div>
+      <div class="emergency-stat siaga">
+        <div class="number" id="countSiaga">0</div>
+        <div class="label">🟠 Siaga<br>(Delay 2+ jam)</div>
+      </div>
+      <div class="emergency-stat awas">
+        <div class="number" id="countAwas">0</div>
+        <div class="label">🔴 Awas<br>(Delay 3+ jam)</div>
+      </div>
+      <div class="emergency-stat sos">
+        <div class="number" id="countSOS">0</div>
+        <div class="label">⚫ SOS<br>(Butuh Ranger)</div>
+      </div>
+    </div>
+
+    <div id="emergencyTableContainer"></div>
+  </div>
+
+  <!-- MAIN DATA TABLE -->
   <div class="table-container">
     <div class="loading" id="loading">⏳ Memuat data...</div>
     <div class="no-data" id="noData" style="display:none;">
@@ -221,11 +326,11 @@
   </div>
 
   <script>
-    // GANTI dengan URL deployment Apps Script kamu
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec';
     
     let allData = [];
     let currentFilter = 'all';
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
     const posNames = {
       1: 'Pos 1', 2: 'Pos 2', 3: 'Pos 3', 4: 'Pos 4', 5: 'Pos 5',
@@ -253,31 +358,44 @@
         
         if(!result.success) throw new Error(result.error);
         
-        allData = result.data.map(r=>({
-          hikername: r.hikername || '',
-          nik: r.nik || '',
-          groupname: r.groupname || 'Individu',
-          uniqueid: r.uniqueid || '',
-          latestStatus: r.LatestStatus || '',
-          latestActivity: r.LatestActivity || '',
-          StatPos1: r.StatPos1 || '', timePos1: r.timePos1 || '',
-          StatPos2: r.StatPos2 || '', timePos2: r.timePos2 || '',
-          StatPos3: r.StatPos3 || '', timePos3: r.timePos3 || '',
-          StatPos4: r.StatPos4 || '', timePos4: r.timePos4 || '',
-          StatPos5: r.StatPos5 || '', timePos5: r.timePos5 || '',
-          StatPos6: r.StatPos6 || '', timePos6: r.timePos6 || '',
-          StatPos7: r.StatPos7 || '', timePos7: r.timePos7 || '',
-          StatPos8: r.StatPos8 || '', timePos8: r.timePos8 || '',
-          StatPos9: r.StatPos9 || '', timePos9: r.timePos9 || '',
-          PredPos1: r.PredPos1 || '', PredPos2: r.PredPos2 || '',
-          PredPos3: r.PredPos3 || '', PredPos4: r.PredPos4 || '',
-          PredPos5: r.PredPos5 || '', PredPos6: r.PredPos6 || '',
-          PredPos7: r.PredPos7 || '', PredPos8: r.PredPos8 || '',
-          PredPos9: r.PredPos9 || ''
-        }));
+        const now = new Date();
+        allData = result.data
+          .map(r=>({
+            hikername: r.hikername || '',
+            nik: r.nik || '',
+            groupname: r.groupname || 'Individu',
+            uniqueid: r.uniqueid || '',
+            latestStatus: r.LatestStatus || '',
+            latestActivity: r.LatestActivity || '',
+            StatPos1: r.StatPos1 || '', timePos1: r.timePos1 || '',
+            StatPos2: r.StatPos2 || '', timePos2: r.timePos2 || '',
+            StatPos3: r.StatPos3 || '', timePos3: r.timePos3 || '',
+            StatPos4: r.StatPos4 || '', timePos4: r.timePos4 || '',
+            StatPos5: r.StatPos5 || '', timePos5: r.timePos5 || '',
+            StatPos6: r.StatPos6 || '', timePos6: r.timePos6 || '',
+            StatPos7: r.StatPos7 || '', timePos7: r.timePos7 || '',
+            StatPos8: r.StatPos8 || '', timePos8: r.timePos8 || '',
+            StatPos9: r.StatPos9 || '', timePos9: r.timePos9 || '',
+            PredPos1: r.PredPos1 || '', PredPos2: r.PredPos2 || '',
+            PredPos3: r.PredPos3 || '', PredPos4: r.PredPos4 || '',
+            PredPos5: r.PredPos5 || '', PredPos6: r.PredPos6 || '',
+            PredPos7: r.PredPos7 || '', PredPos8: r.PredPos8 || '',
+            PredPos9: r.PredPos9 || ''
+          }))
+          .filter(r => {
+            // Filter: Sembunyikan CHECK-OUT lebih dari 3 hari
+            if (r.latestStatus === 'CHECK-OUT-EXIT' && r.latestActivity) {
+              const checkoutTime = new Date(r.latestActivity);
+              const diffMs = now - checkoutTime;
+              return diffMs <= THREE_DAYS_MS;
+            }
+            return true;
+          });
 
         updateStats();
+        renderEmergencySection();
         renderTable();
+        
         document.getElementById('loading').style.display='none';
         document.getElementById(allData.length?'dataTable':'noData').style.display=allData.length?'table':'block';
       }catch(err){
@@ -299,6 +417,120 @@
       document.getElementById('puncak').textContent=s.puncak;
       document.getElementById('istirahat').textContent=s.istirahat;
       document.getElementById('sos').textContent=s.sos;
+    }
+
+    function calculateAlertLevel(row) {
+      const lastPos = getLastPos(row);
+      const direction = getDirection(row);
+      
+      if (!lastPos || !direction || row.latestStatus === 'CHECK-OUT-EXIT') return null;
+      
+      const now = new Date();
+      let nextPos = null;
+      
+      if (direction === 'NAIK' && lastPos.pos < 9) nextPos = lastPos.pos + 1;
+      else if (direction === 'TURUN' && lastPos.pos > 1) nextPos = lastPos.pos - 1;
+      
+      if (!nextPos) return null;
+      
+      const predTime = row[`PredPos${nextPos}`];
+      if (!predTime) return null;
+      
+      const prediction = new Date(predTime);
+      const delayMs = now - prediction;
+      const delayHours = delayMs / (1000 * 60 * 60);
+      
+      if (delayHours < 1) return null;
+      
+      // SOS Manual
+      if (row.latestStatus === 'SOS-EMERGENCY') {
+        return { level: 'SOS', delayHours, nextPos, predTime };
+      }
+      
+      // Awas: 3+ jam
+      if (delayHours >= 3) {
+        return { level: 'AWAS', delayHours, nextPos, predTime };
+      }
+      
+      // Siaga: 2+ jam
+      if (delayHours >= 2) {
+        return { level: 'SIAGA', delayHours, nextPos, predTime };
+      }
+      
+      // Waspada: 1+ jam
+      return { level: 'WASPADA', delayHours, nextPos, predTime };
+    }
+
+    function renderEmergencySection() {
+      const emergencyData = allData
+        .map(r => ({ ...r, alert: calculateAlertLevel(r) }))
+        .filter(r => r.alert !== null)
+        .sort((a, b) => {
+          const priority = { SOS: 4, AWAS: 3, SIAGA: 2, WASPADA: 1 };
+          return (priority[b.alert.level] || 0) - (priority[a.alert.level] || 0);
+        });
+      
+      const counts = { WASPADA: 0, SIAGA: 0, AWAS: 0, SOS: 0 };
+      emergencyData.forEach(r => counts[r.alert.level]++);
+      
+      document.getElementById('countWaspada').textContent = counts.WASPADA;
+      document.getElementById('countSiaga').textContent = counts.SIAGA;
+      document.getElementById('countAwas').textContent = counts.AWAS;
+      document.getElementById('countSOS').textContent = counts.SOS;
+      
+      const section = document.getElementById('emergencySection');
+      const container = document.getElementById('emergencyTableContainer');
+      
+      if (emergencyData.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      
+      let tableHTML = '<table class="emergency-table"><thead><tr>';
+      tableHTML += '<th>Level Bahaya</th>';
+      tableHTML += '<th>Nama Pendaki</th>';
+      tableHTML += '<th>Kelompok</th>';
+      tableHTML += '<th>Pos Terakhir</th>';
+      tableHTML += '<th>Pos Tujuan</th>';
+      tableHTML += '<th>Prediksi ETA</th>';
+      tableHTML += '<th>Delay</th>';
+      tableHTML += '</tr></thead><tbody>';
+      
+      emergencyData.forEach(r => {
+        const lastPos = getLastPos(r);
+        const alert = r.alert;
+        
+        let badgeClass = '';
+        let badgeLabel = '';
+        if (alert.level === 'WASPADA') {
+          badgeClass = 'alert-waspada';
+          badgeLabel = '🟡 WASPADA';
+        } else if (alert.level === 'SIAGA') {
+          badgeClass = 'alert-siaga';
+          badgeLabel = '🟠 SIAGA';
+        } else if (alert.level === 'AWAS') {
+          badgeClass = 'alert-awas';
+          badgeLabel = '🔴 AWAS';
+        } else if (alert.level === 'SOS') {
+          badgeClass = 'alert-sos';
+          badgeLabel = '⚫ SOS';
+        }
+        
+        tableHTML += '<tr>';
+        tableHTML += `<td><span class="alert-badge ${badgeClass}"><span class="dot"></span>${badgeLabel}</span></td>`;
+        tableHTML += `<td><strong>${r.hikername}</strong></td>`;
+        tableHTML += `<td>${r.groupname}</td>`;
+        tableHTML += `<td>${posNames[lastPos.pos]}<br><small style="color:#999;">${formatTime(lastPos.time)}</small></td>`;
+        tableHTML += `<td><strong>${posNames[alert.nextPos]}</strong></td>`;
+        tableHTML += `<td>${formatTime(alert.predTime)}</td>`;
+        tableHTML += `<td><strong style="color:#dc3545;">+${Math.floor(alert.delayHours)}h ${Math.floor((alert.delayHours % 1) * 60)}m</strong></td>`;
+        tableHTML += '</tr>';
+      });
+      
+      tableHTML += '</tbody></table>';
+      container.innerHTML = tableHTML;
     }
 
     function getLastPos(row) {
@@ -339,16 +571,11 @@
         const predTime = row[`PredPos${i}`];
         const isPredicted = !hasPassed && predTime;
         
-        // Pos dot
         let dotClass = '';
         let dotContent = i;
-        if (isCurrent) {
-          dotClass = 'current';
-        } else if (hasPassed) {
-          dotClass = 'active';
-        } else if (isPredicted) {
-          dotClass = 'predicted';
-        }
+        if (isCurrent) dotClass = 'current';
+        else if (hasPassed) dotClass = 'active';
+        else if (isPredicted) dotClass = 'predicted';
         
         const actualTime = row[`timePos${i}`];
         const displayTime = actualTime ? formatTime(actualTime) : (isPredicted ? formatTime(predTime) : '');
@@ -356,18 +583,10 @@
         html += `<div class="pos-item">`;
         html += `<div class="pos-dot ${dotClass}">${dotContent}</div>`;
         html += `<div class="pos-label">${posNames[i]}</div>`;
-        
-        if (displayTime) {
-          html += `<div class="pos-time">${displayTime}</div>`;
-        }
-        
-        if (isPredicted) {
-          html += `<div class="prediction-badge">Prediksi</div>`;
-        }
-        
+        if (displayTime) html += `<div class="pos-time">${displayTime}</div>`;
+        if (isPredicted) html += `<div class="prediction-badge">Prediksi</div>`;
         html += `</div>`;
         
-        // Arrow
         if (i < 9) {
           const arrowActive = hasPassed ? 'active' : '';
           html += `<div class="pos-arrow ${arrowActive}"></div>`;
@@ -466,7 +685,7 @@
 
     function exportToCSV(){
       const csv=[
-        ['Nama','Kelompok','Status','Pos Terakhir','Waktu','Prediksi Berikutnya'].join(','),
+        ['Nama','Kelompok','Status','Pos Terakhir','Waktu','Prediksi Berikutnya','Alert Level','Delay'].join(','),
         ...allData.map(r=>{
           const lastPos = getLastPos(r);
           const lastPosName = lastPos ? posNames[lastPos.pos] : '-';
@@ -474,6 +693,9 @@
           
           const direction = getDirection(r);
           let pred = '-';
+          let alertInfo = '';
+          let delayInfo = '';
+          
           if (direction === 'NAIK' && lastPos && lastPos.pos < 9) {
             const nextPos = lastPos.pos + 1;
             pred = r[`PredPos${nextPos}`] ? `${posNames[nextPos]}: ${formatTime(r[`PredPos${nextPos}`])}` : '-';
@@ -482,7 +704,13 @@
             pred = r[`PredPos${nextPos}`] ? `${posNames[nextPos]}: ${formatTime(r[`PredPos${nextPos}`])}` : '-';
           }
           
-          return [r.hikername, r.groupname, r.latestStatus, lastPosName, lastTime, pred].join(',');
+          const alert = calculateAlertLevel(r);
+          if (alert) {
+            alertInfo = alert.level;
+            delayInfo = `+${Math.floor(alert.delayHours)}h ${Math.floor((alert.delayHours % 1) * 60)}m`;
+          }
+          
+          return [r.hikername, r.groupname, r.latestStatus, lastPosName, lastTime, pred, alertInfo, delayInfo].join(',');
         })
       ].join('\n');
       
