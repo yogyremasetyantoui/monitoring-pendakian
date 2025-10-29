@@ -415,11 +415,15 @@
     }
 
     function calculateAlertLevel(row) {
+      // 🔹 CRITICAL: Check LatestStatus dari server, bukan dari getLastPos
+      if (row.latestStatus === 'CHECK-OUT-EXIT') {
+        return null; // Skip pendaki yang sudah checkout
+      }
+      
       const lastPos = getLastPos(row);
       const direction = getDirection(row);
       
-      // 🔹 SKIP JIKA SUDAH CHECKOUT
-      if (!lastPos || !direction || row.latestStatus === 'CHECK-OUT-EXIT') {
+      if (!lastPos || !direction) {
         return null;
       }
       
@@ -462,12 +466,23 @@
 
     function renderEmergencySection() {
       const emergencyData = allData
-        .map(r => ({ ...r, alert: calculateAlertLevel(r) }))
-        .filter(r => r.alert !== null)
+        .map(r => {
+          // 🔹 Debug log untuk setiap pendaki
+          console.log('Checking emergency for:', r.hikername, 'Status:', r.latestStatus);
+          return { ...r, alert: calculateAlertLevel(r) };
+        })
+        .filter(r => {
+          if (r.alert !== null) {
+            console.log('✅ Alert found:', r.hikername, r.alert.level);
+          }
+          return r.alert !== null;
+        })
         .sort((a, b) => {
           const priority = { SOS: 4, AWAS: 3, SIAGA: 2, WASPADA: 1 };
           return (priority[b.alert.level] || 0) - (priority[a.alert.level] || 0);
         });
+      
+      console.log('Total emergency alerts:', emergencyData.length);
       
       const counts = { WASPADA: 0, SIAGA: 0, AWAS: 0, SOS: 0 };
       emergencyData.forEach(r => counts[r.alert.level]++);
@@ -546,15 +561,22 @@
     }
 
     function getDirection(row) {
-      const lastPos = getLastPos(row);
-      if (!lastPos) return null;
+      // 🔹 PRIORITY: Baca dari LatestStatus yang sudah di-update dari server
+      const status = row.latestStatus;
       
-      const status = lastPos.status;
-      if (/NAIK|SUMMIT|REST|CAMPING/i.test(status) && !/TURUN|EXIT/i.test(status)) {
+      if (!status) return null;
+      
+      // Check EXIT dulu sebelum yang lain
+      if (/EXIT/i.test(status)) {
+        return null; // Sudah selesai, tidak ada arah
+      }
+      
+      if (/NAIK|SUMMIT|REST|CAMPING/i.test(status) && !/TURUN/i.test(status)) {
         return 'NAIK';
-      } else if (/TURUN|EXIT/i.test(status)) {
+      } else if (/TURUN/i.test(status)) {
         return 'TURUN';
       }
+      
       return null;
     }
 
