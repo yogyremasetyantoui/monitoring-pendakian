@@ -59,7 +59,6 @@
       border:none; border-radius:8px; cursor:pointer; font-weight:bold; 
     }
 
-    /* EMERGENCY ALERT SECTION */
     .emergency-section {
       background:#fff; border-radius:12px; padding:20px;
       margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
@@ -152,7 +151,6 @@
       font-size:16px; font-weight:bold;
     }
 
-    /* MAIN TABLE */
     .table-container { 
       background:white; border-radius:12px; 
       box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; 
@@ -277,7 +275,6 @@
     <button class="export-btn" onclick="exportToCSV()">📥 Export CSV</button>
   </div>
 
-  <!-- EMERGENCY ALERT SECTION -->
   <div class="emergency-section" id="emergencySection" style="display:none;">
     <div class="emergency-header">
       <h2>🚨 MONITORING DARURAT</h2>
@@ -306,7 +303,6 @@
     <div id="emergencyTableContainer"></div>
   </div>
 
-  <!-- MAIN DATA TABLE -->
   <div class="table-container">
     <div class="loading" id="loading">⏳ Memuat data...</div>
     <div class="no-data" id="noData" style="display:none;">
@@ -383,7 +379,6 @@
             PredPos9: r.PredPos9 || ''
           }))
           .filter(r => {
-            // Filter: Sembunyikan CHECK-OUT lebih dari 3 hari
             if (r.latestStatus === 'CHECK-OUT-EXIT' && r.latestActivity) {
               const checkoutTime = new Date(r.latestActivity);
               const diffMs = now - checkoutTime;
@@ -423,7 +418,10 @@
       const lastPos = getLastPos(row);
       const direction = getDirection(row);
       
-      if (!lastPos || !direction || row.latestStatus === 'CHECK-OUT-EXIT') return null;
+      // 🔹 SKIP JIKA SUDAH CHECKOUT
+      if (!lastPos || !direction || row.latestStatus === 'CHECK-OUT-EXIT') {
+        return null;
+      }
       
       const now = new Date();
       let nextPos = null;
@@ -440,6 +438,7 @@
       const delayMs = now - prediction;
       const delayHours = delayMs / (1000 * 60 * 60);
       
+      // 🔹 SKIP JIKA BELUM DELAY 1 JAM
       if (delayHours < 1) return null;
       
       // SOS Manual
