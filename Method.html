@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metodologi Penelitian - Sistem Monitoring Pendaki Gunung Gede Pangrango</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.3/panzoom.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-zoom-in {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-zoom-out {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-fullscreen {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 0.95em;
+            font-style: italic;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 300px);
+            min-height: 600px;
+            overflow: hidden;
+            background: #fafafa;
+            cursor: grab;
+        }
+
+        .chart-container:active {
+            cursor: grabbing;
+        }
+
+        #flowchart-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        #flowchart {
+            transform-origin: center center;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            color: #667eea;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .legend {
+            background: white;
+            padding: 20px;
+            margin: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .legend h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+        }
+
+        .legend-label {
+            font-size: 0.95em;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .controls {
+                padding: 15px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9em;
+            }
+
+            .chart-container {
+                height: calc(100vh - 400px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏔️ Metodologi Penelitian</h1>
+            <p>Sistem Monitoring Real-Time Pendaki Gunung dengan Anomaly Detection</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Studi Kasus: Gunung Gede Pangrango</p>
+        </div>
+
+        <div class="legend">
+            <h3>📊 Kategori Tahapan Penelitian</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4CAF50;"></div>
+                    <div class="legend-label">Start & End</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2196F3;"></div>
+                    <div class="legend-label">Persiapan</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF9800;"></div>
+                    <div class="legend-label">Pengumpulan Data</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9C27B0;"></div>
+                    <div class="legend-label">Modeling</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #E91E63;"></div>
+                    <div class="legend-label">Sistem & Testing</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00BCD4;"></div>
+                    <div class="legend-label">Analisis</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFC107;"></div>
+                    <div class="legend-label">Dokumentasi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-zoom-in" onclick="zoomIn()">
+                🔍 Zoom In
+            </button>
+            <button class="btn btn-zoom-out" onclick="zoomOut()">
+                🔎 Zoom Out
+            </button>
+            <button class="btn btn-reset" onclick="resetZoom()">
+                🔄 Reset View
+            </button>
+            <button class="btn btn-fullscreen" onclick="toggleFullscreen()">
+                ⛶ Fullscreen
+            </button>
+            <span class="info-text">💡 Klik & drag untuk menggeser, scroll untuk zoom</span>
+        </div>
+
+        <div class="chart-container" id="chart-container">
+            <div class="loading">⏳ Loading flowchart...</div>
+            <div id="flowchart-wrapper">
+                <div id="flowchart">
+                    <pre class="mermaid">
+flowchart TD
+    Start([🚀 Mulai Penelitian]) --> A[📚 Studi Literatur & Kerangka Teoritis]
+    
+    A --> B{Persiapan Penelitian}
+    B --> B1[✅ Ethical Clearance & Izin]
+    B --> B2[👥 Rekrutmen 3 Volunteer]
+    B --> B3[🔧 Setup Infrastruktur]
+    
+    B3 --> B3a[Barcode Scanner 8 Pos]
+    B3 --> B3b[Starlink Mini 4 Pos]
+    B3 --> B3c[Server Cloud Database]
+    
+    B1 & B2 & B3a & B3b & B3c --> C{Pengumpulan Data}
+    
+    C --> C1[📊 Data Primer]
+    C --> C2[📁 Data Sekunder]
+    C --> C3[🗺️ Data Geospasial]
+    
+    C1 --> C1a[V1: 07:00<br/>Experienced]
+    C1 --> C1b[V2: 08:00<br/>Intermediate]
+    C1 --> C1c[V3: 09:00<br/>Beginner]
+    
+    C2 --> C2a[Strava GPS<br/>Tracks Global]
+    C2 --> C2b[Literature Review:<br/>Weather & Fatigue Models]
+    C2 --> C2c[Historical Incidents:<br/>Gede Pangrango 2006-2025]
+    
+    C3 --> C3a[DEM High<br/>Resolution]
+    C3 --> C3b[GPS Track<br/>5m Vertex]
+    C3 --> C3c[Simplified<br/>10m, 20m, 50m]
+    
+    C1a & C1b & C1c --> D[📝 Data Recording per Segment]
+    
+    D --> D1[🌄 Spatial:<br/>Slope, Elevasi, Jarak]
+    D --> D2[⏱️ Temporal:<br/>Timestamp]
+    D --> D3[🌤️ Environmental:<br/>Weather]
+    D --> D4[👤 Individual:<br/>Cumulative Gain]
+    D --> D5[🥾 Trail Condition:<br/>Tanah, Lumpur, Bebatuan]
+    
+    C2a & C2b & C2c & C3a & C3b & C3c --> E[🔄 Integrasi & Preprocessing Data]
+    D1 & D2 & D3 & D4 & D5 --> E
+    
+    E --> G{🔬 Pengembangan Model}
+    
+    G --> G1[Model 1:<br/>Topografi-Kecepatan]
+    G --> G2[Model 2:<br/>Cumulative Fatigue]
+    G --> G3[Model 3:<br/>Weather Impact]
+    G --> G4[Model 4:<br/>Trail Condition]
+    G --> G5[Model 5:<br/>Individual Calibration]
+    G --> G6[Model 6:<br/>Cartographic Resolution]
+    
+    G1 & G2 & G3 & G4 & G5 & G6 --> H[🎯 Integrasi Model Bayesian]
+    
+    H --> I[⚡ Model Prediktif Terintegrasi]
+    I --> I1[v_predicted = v_base × f_fatigue<br/>× f_weather × f_trail × cal_factor]
+    
+    I1 --> J{📐 Analisis Generalisasi}
+    
+    J --> J1[Bias Jarak<br/>per Resolusi]
+    J --> J2[Bias Slope<br/>per Resolusi]
+    J --> J3[Dampak Akurasi<br/>Prediksi]
+    
+    J1 & J2 & J3 --> K{💻 Pengembangan Sistem Prototype}
+    
+    K --> K1[📱 Barcode Check-in<br/>7 Status QR]
+    K --> K2[⚠️ Real-Time<br/>Anomaly Detection]
+    K --> K3[📡 Starlink<br/>Communication]
+    K --> K4[🖥️ SAR Dashboard<br/>Mobile App]
+    
+    K1 & K2 & K3 & K4 --> L{🧪 Testing & Validasi}
+    
+    L --> L1[✓ Akurasi Prediksi<br/>MAE 15-25 min]
+    L --> L2[✓ Sensitivity &<br/>Specificity]
+    L --> L3[✓ Time-to-Contact<br/>< 5 menit]
+    L --> L4[✓ Usability Testing<br/>Expert Interviews]
+    
+    L1 & L2 & L3 & L4 --> M[📊 Analisis Hasil]
+    
+    M --> M1[Regression Analysis]
+    M --> M2[Bayesian Inference]
+    M --> M3[ROC Curve]
+    M --> M4[Confusion Matrix]
+    
+    M1 & M2 & M3 & M4 --> N{💡 Pembahasan}
+    
+    N --> N1[Validasi Hipotesis<br/>H1-H5]
+    N --> N2[Interpretasi<br/>Time Geography]
+    N --> N3[Perbandingan<br/>Literatur]
+    N --> N4[Limitasi &<br/>Generalisasi]
+    
+    N1 & N2 & N3 & N4 --> O{📝 Dokumentasi & Deliverables}
+    
+    O --> O1[📋 SOP]
+    O --> O2[🎓 Training<br/>Materials SAR]
+    O --> O3[📖 Implementation<br/>Guidelines]
+    O --> O4[📄 Research Articles<br/>2-3 Papers]
+    
+    O1 & O2 & O3 & O4 --> P{🎯 Kesimpulan & Rekomendasi}
+    
+    P --> P1[🏛️ Blueprint<br/>Sistem Nasional]
+    P --> P2[⚖️ Rekomendasi<br/>Kebijakan]
+    P --> P3[🔬 Saran Penelitian<br/>Lanjutan]
+    
+    P1 & P2 & P3 --> End([✨ Selesai])
+    
+    classDef startEnd fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    classDef preparation fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    classDef dataCollection fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
+    classDef modeling fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    classDef system fill:#E91E63,stroke:#AD1457,stroke-width:2px,color:#fff
+    classDef analysis fill:#00BCD4,stroke:#006064,stroke-width:2px,color:#fff
+    classDef documentation fill:#FFC107,stroke:#F57F17,stroke-width:2px,color:#000
+    
+    class Start,End startEnd
+    class B,B1,B2,B3,B3a,B3b,B3c preparation
+    class C,C1,C1a,C1b,C1c,C2,C2a,C2b,C2c,C3,C3a,C3b,C3c,D,D1,D2,D3,D4,D5,E dataCollection
+    class G,G1,G2,G3,G4,G5,G6,H,I,I1,J,J1,J2,J3 modeling
+    class K,K1,K2,K3,K4,L,L1,L2,L3,L4 system
+    class M,M1,M2,M3,M4,N,N1,N2,N3,N4 analysis
+    class O,O1,O2,O3,O4,P,P1,P2,P3 documentation
+                    </pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Sistem Monitoring Real-Time Pendaki Gunung Gede Pangrango</strong></p>
+            <p>Penelitian berbasis Time Geography dan Bayesian Uncertainty Quantification</p>
+            <p style="margin-top: 15px;">
+                📧 Kontak: <a href="mailto:your.email@example.com">your.email@example.com</a> | 
+                🔗 GitHub: <a href="https://github.com/yourusername" target="_blank">@yourusername</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        let panzoomInstance;
+        
+        // Wait for Mermaid to render
+        setTimeout(() => {
+            document.querySelector('.loading').style.display = 'none';
+            
+            // Initialize panzoom
+            const element = document.getElementById('flowchart');
+            panzoomInstance = panzoom(element, {
+                maxZoom: 3,
+                minZoom: 0.3,
+                bounds: true,
+                boundsPadding: 0.1,
+                zoomDoubleClickSpeed: 1,
+                smoothScroll: false
+            });
+
+            // Set initial zoom to fit
+            setTimeout(() => {
+                const container = document.getElementById('chart-container');
+                const content = document.getElementById('flowchart');
+                const containerRect = container.getBoundingClientRect();
+                const contentRect = content.getBoundingClientRect();
+                
+                const scaleX = containerRect.width / contentRect.width * 0.9;
+                const scaleY = containerRect.height / contentRect.height * 0.9;
+                const scale = Math.min(scaleX, scaleY, 1);
+                
+                panzoomInstance.zoomTo(0, 0, scale);
+                panzoomInstance.moveTo(
+                    (containerRect.width - contentRect.width * scale) / 2,
+                    (containerRect.height - contentRect.height * scale) / 2
+                );
+            }, 100);
+        }, 1500);
+
+        function zoomIn() {
+            if (panzoomInstance) {
+                panzoomInstance.zoomIn();
+            }
+        }
+
+        function zoomOut() {
+            if (panzoomInstance) {
+                panzoomInstance.zoomOut();
+            }
+        }
+
+        function resetZoom() {
+            if (panzoomInstance) {
+                panzoomInstance.moveTo(0, 0);
+                panzoomInstance.zoomAbs(0, 0, 1);
+                
+                // Re-center
+                setTimeout(() => {
+                    const container = document.getElementById('chart-container');
+                    const content = document.getElementById('flowchart');
+                    const containerRect = container.getBoundingClientRect();
+                    const contentRect = content.getBoundingClientRect();
+                    
+                    const scaleX = containerRect.width / contentRect.width * 0.9;
+                    const scaleY = containerRect.height / contentRect.height * 0.9;
+                    const scale = Math.min(scaleX, scaleY, 1);
+                    
+                    panzoomInstance.zoomTo(0, 0, scale);
+                    panzoomInstance.moveTo(
+                        (containerRect.width - contentRect.width * scale) / 2,
+                        (containerRect.height - contentRect.height * scale) / 2
+                    );
+                }, 100);
+            }
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('chart-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                document.querySelector('.btn-fullscreen').textContent = '⛶ Exit Fullscreen';
+            } else {
+                document.querySelector('.btn-fullscreen').textContent = '⛶ Fullscreen';
+            }
+        });
+    </script>
+</body>
+</html>
