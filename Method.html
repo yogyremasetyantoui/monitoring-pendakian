@@ -112,6 +112,7 @@
             overflow: hidden;
             background: #fafafa;
             cursor: grab;
+            touch-action: none;
         }
 
         .chart-container:active {
@@ -121,14 +122,21 @@
         #flowchart-wrapper {
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
+            overflow: hidden;
+            position: relative;
         }
 
         #flowchart {
-            transform-origin: center center;
+            display: inline-block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #flowchart svg {
+            max-width: none !important;
+            height: auto !important;
         }
 
         .loading {
@@ -434,76 +442,106 @@ flowchart TD
         });
 
         let panzoomInstance;
+        let currentScale = 1;
         
-        // Wait for Mermaid to render
-        setTimeout(() => {
+        // Function to initialize panzoom after mermaid renders
+        function initializePanzoom() {
+            const svgElement = document.querySelector('#flowchart svg');
+            
+            if (!svgElement) {
+                console.log('SVG not ready, retrying...');
+                setTimeout(initializePanzoom, 500);
+                return;
+            }
+            
+            console.log('SVG found, initializing panzoom...');
             document.querySelector('.loading').style.display = 'none';
             
-            // Initialize panzoom
-            const element = document.getElementById('flowchart');
+            // Get the SVG element to pan/zoom
+            const element = svgElement;
+            
+            // Initialize panzoom on SVG
             panzoomInstance = panzoom(element, {
-                maxZoom: 3,
-                minZoom: 0.3,
-                bounds: true,
-                boundsPadding: 0.1,
+                maxZoom: 5,
+                minZoom: 0.2,
+                bounds: false,
                 zoomDoubleClickSpeed: 1,
-                smoothScroll: false
+                smoothScroll: true,
+                beforeWheel: function(e) {
+                    return true;
+                },
+                beforeMouseDown: function(e) {
+                    return true;
+                },
+                onTouch: function(e) {
+                    return true;
+                }
             });
 
-            // Set initial zoom to fit
+            // Get initial scale to fit
             setTimeout(() => {
-                const container = document.getElementById('chart-container');
-                const content = document.getElementById('flowchart');
-                const containerRect = container.getBoundingClientRect();
-                const contentRect = content.getBoundingClientRect();
-                
-                const scaleX = containerRect.width / contentRect.width * 0.9;
-                const scaleY = containerRect.height / contentRect.height * 0.9;
-                const scale = Math.min(scaleX, scaleY, 1);
-                
-                panzoomInstance.zoomTo(0, 0, scale);
-                panzoomInstance.moveTo(
-                    (containerRect.width - contentRect.width * scale) / 2,
-                    (containerRect.height - contentRect.height * scale) / 2
+                fitToScreen();
+            }, 300);
+            
+            // Listen to zoom events
+            panzoomInstance.on('zoom', function(e) {
+                currentScale = e.getTransform().scale;
+                console.log('Current scale:', currentScale);
+            });
+            
+            console.log('Panzoom initialized successfully');
+        }
+
+        function fitToScreen() {
+            if (!panzoomInstance) return;
+            
+            const container = document.getElementById('flowchart-wrapper');
+            const svgElement = document.querySelector('#flowchart svg');
+            
+            if (!svgElement) return;
+            
+            const containerRect = container.getBoundingClientRect();
+            const svgRect = svgElement.getBoundingClientRect();
+            
+            // Calculate scale to fit
+            const scaleX = (containerRect.width * 0.85) / svgRect.width;
+            const scaleY = (containerRect.height * 0.85) / svgRect.height;
+            const scale = Math.min(scaleX, scaleY, 1);
+            
+            // Reset position first
+            panzoomInstance.moveTo(0, 0);
+            panzoomInstance.zoomAbs(0, 0, 1);
+            
+            // Then apply new scale and center
+            setTimeout(() => {
+                panzoomInstance.zoomAbs(
+                    containerRect.width / 2,
+                    containerRect.height / 2,
+                    scale
                 );
-            }, 100);
-        }, 1500);
+                currentScale = scale;
+                console.log('Fitted to screen with scale:', scale);
+            }, 50);
+        }
 
         function zoomIn() {
             if (panzoomInstance) {
-                panzoomInstance.zoomIn();
+                const container = document.getElementById('flowchart-wrapper');
+                const rect = container.getBoundingClientRect();
+                panzoomInstance.smoothZoom(rect.width / 2, rect.height / 2, 1.3);
             }
         }
 
         function zoomOut() {
             if (panzoomInstance) {
-                panzoomInstance.zoomOut();
+                const container = document.getElementById('flowchart-wrapper');
+                const rect = container.getBoundingClientRect();
+                panzoomInstance.smoothZoom(rect.width / 2, rect.height / 2, 0.7);
             }
         }
 
         function resetZoom() {
-            if (panzoomInstance) {
-                panzoomInstance.moveTo(0, 0);
-                panzoomInstance.zoomAbs(0, 0, 1);
-                
-                // Re-center
-                setTimeout(() => {
-                    const container = document.getElementById('chart-container');
-                    const content = document.getElementById('flowchart');
-                    const containerRect = container.getBoundingClientRect();
-                    const contentRect = content.getBoundingClientRect();
-                    
-                    const scaleX = containerRect.width / contentRect.width * 0.9;
-                    const scaleY = containerRect.height / contentRect.height * 0.9;
-                    const scale = Math.min(scaleX, scaleY, 1);
-                    
-                    panzoomInstance.zoomTo(0, 0, scale);
-                    panzoomInstance.moveTo(
-                        (containerRect.width - contentRect.width * scale) / 2,
-                        (containerRect.height - contentRect.height * scale) / 2
-                    );
-                }, 100);
-            }
+            fitToScreen();
         }
 
         function toggleFullscreen() {
@@ -519,12 +557,36 @@ flowchart TD
 
         // Handle fullscreen change
         document.addEventListener('fullscreenchange', () => {
+            const btn = document.querySelector('.btn-fullscreen');
             if (document.fullscreenElement) {
-                document.querySelector('.btn-fullscreen').textContent = '⛶ Exit Fullscreen';
+                btn.innerHTML = '⛶ Exit Fullscreen';
+                setTimeout(fitToScreen, 300);
             } else {
-                document.querySelector('.btn-fullscreen').textContent = '⛶ Fullscreen';
+                btn.innerHTML = '⛶ Fullscreen';
+                setTimeout(fitToScreen, 300);
             }
         });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (panzoomInstance) {
+                setTimeout(fitToScreen, 300);
+            }
+        });
+
+        // Start initialization after page load
+        window.addEventListener('load', () => {
+            setTimeout(initializePanzoom, 1000);
+        });
+        
+        // Fallback: also try after DOM content loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initializePanzoom, 1000);
+            });
+        } else {
+            setTimeout(initializePanzoom, 1000);
+        }
     </script>
 </body>
 </html>
