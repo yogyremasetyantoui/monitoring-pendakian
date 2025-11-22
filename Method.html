@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metodologi Penelitian - Sistem Monitoring Pendaki Gunung Gede Pangrango</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/9.4.3/panzoom.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -109,10 +119,9 @@
             width: 100%;
             height: calc(100vh - 300px);
             min-height: 600px;
-            overflow: hidden;
+            overflow: auto;
             background: #fafafa;
             cursor: grab;
-            touch-action: none;
         }
 
         .chart-container:active {
@@ -120,23 +129,16 @@
         }
 
         #flowchart-wrapper {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: relative;
+            display: inline-block;
+            min-width: 100%;
+            min-height: 100%;
+            padding: 40px;
+            transform-origin: top left;
+            transition: transform 0.3s ease;
         }
 
         #flowchart {
             display: inline-block;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        #flowchart svg {
-            max-width: none !important;
-            height: auto !important;
         }
 
         .loading {
@@ -146,6 +148,7 @@
             transform: translate(-50%, -50%);
             font-size: 1.5em;
             color: #667eea;
+            z-index: 10;
         }
 
         .footer {
@@ -287,7 +290,7 @@
             <button class="btn btn-fullscreen" onclick="toggleFullscreen()">
                 ⛶ Fullscreen
             </button>
-            <span class="info-text">💡 Klik & drag untuk menggeser, scroll untuk zoom</span>
+            <span class="info-text">💡 Scroll untuk zoom, drag untuk menggeser</span>
         </div>
 
         <div class="chart-container" id="chart-container">
@@ -430,209 +433,98 @@ flowchart TD
     </div>
 
     <script>
-        // Initialize Mermaid with callback
-        mermaid.initialize({ 
-            startOnLoad: false,
-            theme: 'default',
-            flowchart: {
-                useMaxWidth: false,
-                htmlLabels: true,
-                curve: 'basis'
-            }
-        });
+        let currentScale = 1;
+        let isPanning = false;
+        let startX, startY, scrollLeft, scrollTop;
 
-        let panzoomInstance;
-        let initialized = false;
-        
-        // Function to initialize panzoom after mermaid renders
-        async function initializePanzoom() {
-            if (initialized) return;
+        // Wait for Mermaid to render
+        setTimeout(() => {
+            const loading = document.querySelector('.loading');
+            if (loading) loading.style.display = 'none';
             
-            try {
-                // Render mermaid first
-                const flowchartDiv = document.querySelector('#flowchart .mermaid');
-                if (!flowchartDiv) {
-                    console.log('Mermaid element not found, retrying...');
-                    setTimeout(initializePanzoom, 500);
-                    return;
-                }
-                
-                // Render the diagram
-                const { svg } = await mermaid.render('mermaid-diagram', flowchartDiv.textContent);
-                flowchartDiv.innerHTML = svg;
-                
-                console.log('Mermaid rendered successfully');
-                document.querySelector('.loading').style.display = 'none';
-                
-                // Wait a bit for DOM update
-                await new Promise(resolve => setTimeout(resolve, 200));
-                
-                // Get the SVG element
-                const svgElement = document.querySelector('#flowchart svg');
-                
-                if (!svgElement) {
-                    console.error('SVG not found after rendering');
-                    return;
-                }
-                
-                console.log('Initializing panzoom on SVG...');
-                
-                // Make SVG fill the space properly
-                svgElement.style.maxWidth = 'none';
-                svgElement.style.height = 'auto';
-                
-                // Initialize panzoom on the wrapper to pan the SVG
-                const wrapper = document.getElementById('flowchart');
-                
-                panzoomInstance = panzoom(wrapper, {
-                    maxZoom: 5,
-                    minZoom: 0.1,
-                    bounds: false,
-                    boundsPadding: 1,
-                    zoomDoubleClickSpeed: 1,
-                    smoothScroll: true,
-                    zoomSpeed: 0.065,
-                    autocenter: true,
-                    beforeWheel: function(e) {
-                        // Allow wheel zoom
-                        return true;
-                    }
-                });
-
-                initialized = true;
-                console.log('Panzoom initialized successfully');
-                
-                // Fit to screen after a delay
-                setTimeout(() => {
-                    fitToScreen();
-                }, 500);
-                
-            } catch (error) {
-                console.error('Error initializing:', error);
-                setTimeout(initializePanzoom, 1000);
-            }
-        }
-
-        function fitToScreen() {
-            if (!panzoomInstance) {
-                console.log('Panzoom not ready');
-                return;
-            }
+            const container = document.getElementById('chart-container');
+            const wrapper = document.getElementById('flowchart-wrapper');
             
-            try {
-                const container = document.getElementById('flowchart-wrapper');
-                const svgElement = document.querySelector('#flowchart svg');
-                
-                if (!svgElement) {
-                    console.log('SVG not found for fitting');
-                    return;
+            // Pan functionality
+            container.addEventListener('mousedown', (e) => {
+                if (e.target.closest('a, button')) return;
+                isPanning = true;
+                container.style.cursor = 'grabbing';
+                startX = e.pageX - container.offsetLeft;
+                startY = e.pageY - container.offsetTop;
+                scrollLeft = container.scrollLeft;
+                scrollTop = container.scrollTop;
+            });
+
+            container.addEventListener('mouseleave', () => {
+                isPanning = false;
+                container.style.cursor = 'grab';
+            });
+
+            container.addEventListener('mouseup', () => {
+                isPanning = false;
+                container.style.cursor = 'grab';
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (!isPanning) return;
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const y = e.pageY - container.offsetTop;
+                const walkX = (x - startX) * 2;
+                const walkY = (y - startY) * 2;
+                container.scrollLeft = scrollLeft - walkX;
+                container.scrollTop = scrollTop - walkY;
+            });
+
+            // Zoom with wheel
+            container.addEventListener('wheel', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    currentScale *= delta;
+                    currentScale = Math.min(Math.max(0.2, currentScale), 5);
+                    wrapper.style.transform = `scale(${currentScale})`;
                 }
-                
-                // Reset first
-                panzoomInstance.moveTo(0, 0);
-                panzoomInstance.zoomAbs(0, 0, 1);
-                
-                // Get dimensions
-                const containerRect = container.getBoundingClientRect();
-                const svgRect = svgElement.getBBox();
-                
-                // Calculate scale
-                const padding = 50;
-                const scaleX = (containerRect.width - padding * 2) / svgRect.width;
-                const scaleY = (containerRect.height - padding * 2) / svgRect.height;
-                const scale = Math.min(scaleX, scaleY, 0.8);
-                
-                console.log('Fitting with scale:', scale);
-                
-                // Apply scale centered
-                setTimeout(() => {
-                    const centerX = containerRect.width / 2;
-                    const centerY = containerRect.height / 2;
-                    
-                    panzoomInstance.zoomAbs(centerX, centerY, scale);
-                    
-                    // Center the content
-                    const transform = panzoomInstance.getTransform();
-                    const offsetX = (containerRect.width - svgRect.width * scale) / 2;
-                    const offsetY = (containerRect.height - svgRect.height * scale) / 2;
-                    
-                    panzoomInstance.moveTo(offsetX, offsetY);
-                }, 100);
-                
-            } catch (error) {
-                console.error('Error fitting to screen:', error);
-            }
-        }
+            }, { passive: false });
+        }, 2000);
 
         function zoomIn() {
-            if (!panzoomInstance) return;
-            try {
-                const container = document.getElementById('flowchart-wrapper');
-                const rect = container.getBoundingClientRect();
-                panzoomInstance.smoothZoom(rect.width / 2, rect.height / 2, 1.4);
-            } catch (error) {
-                console.error('Error zooming in:', error);
-            }
+            currentScale *= 1.2;
+            currentScale = Math.min(currentScale, 5);
+            document.getElementById('flowchart-wrapper').style.transform = `scale(${currentScale})`;
         }
 
         function zoomOut() {
-            if (!panzoomInstance) return;
-            try {
-                const container = document.getElementById('flowchart-wrapper');
-                const rect = container.getBoundingClientRect();
-                panzoomInstance.smoothZoom(rect.width / 2, rect.height / 2, 0.7);
-            } catch (error) {
-                console.error('Error zooming out:', error);
-            }
+            currentScale *= 0.8;
+            currentScale = Math.max(currentScale, 0.2);
+            document.getElementById('flowchart-wrapper').style.transform = `scale(${currentScale})`;
         }
 
         function resetZoom() {
-            setTimeout(fitToScreen, 100);
+            currentScale = 1;
+            const wrapper = document.getElementById('flowchart-wrapper');
+            const container = document.getElementById('chart-container');
+            wrapper.style.transform = `scale(1)`;
+            container.scrollLeft = 0;
+            container.scrollTop = 0;
         }
 
         function toggleFullscreen() {
             const container = document.getElementById('chart-container');
             if (!document.fullscreenElement) {
                 container.requestFullscreen().catch(err => {
-                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                    alert(`Error: ${err.message}`);
                 });
             } else {
                 document.exitFullscreen();
             }
         }
 
-        // Handle fullscreen change
         document.addEventListener('fullscreenchange', () => {
             const btn = document.querySelector('.btn-fullscreen');
-            if (document.fullscreenElement) {
-                btn.innerHTML = '⛶ Exit Fullscreen';
-                setTimeout(fitToScreen, 500);
-            } else {
-                btn.innerHTML = '⛶ Fullscreen';
-                setTimeout(fitToScreen, 500);
-            }
+            btn.innerHTML = document.fullscreenElement ? '⛶ Exit Fullscreen' : '⛶ Fullscreen';
         });
-        
-        // Handle window resize
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (panzoomInstance) fitToScreen();
-            }, 300);
-        });
-
-        // Start initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, starting initialization...');
-            setTimeout(initializePanzoom, 500);
-        });
-        
-        // Fallback for already loaded
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            console.log('Document already loaded, starting initialization...');
-            setTimeout(initializePanzoom, 500);
-        }
     </script>
 </body>
 </html>
