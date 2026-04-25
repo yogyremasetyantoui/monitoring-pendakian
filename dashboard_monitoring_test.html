@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring Pendakian</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:#f0f2f5; padding:20px;
+    }
+    .header {
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:white; padding:30px; border-radius:15px;
+      margin-bottom:20px; box-shadow:0 5px 15px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size:32px; margin-bottom:10px; }
+    .header p { opacity:0.9; font-size:14px; }
+
+    /* ===== WEATHER SECTION ===== */
+    .weather-section {
+      background:white; border-radius:12px;
+      padding:18px 24px; margin-bottom:20px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      display:flex; align-items:center;
+      justify-content:space-between; flex-wrap:wrap; gap:16px;
+      border-left:5px solid #17a2b8;
+      transition: border-color 0.5s;
+    }
+    .weather-section.rain-sedang { border-left-color:#007bff; }
+    .weather-section.rain-lebat  { border-left-color:#dc3545; }
+
+    .weather-left {
+      display:flex; align-items:center; gap:16px;
+    }
+    .weather-icon-big { font-size:52px; line-height:1; }
+    .weather-text h3 {
+      font-size:20px; font-weight:700; color:#333; margin-bottom:2px;
+    }
+    .weather-text .precip-label {
+      font-size:13px; color:#666; margin-bottom:4px;
+    }
+    .weather-text .update-time {
+      font-size:11px; color:#aaa;
+    }
+
+    .weather-metrics {
+      display:flex; gap:24px; flex-wrap:wrap;
+    }
+    .w-metric {
+      text-align:center;
+      background:#f8f9fa; padding:10px 16px; border-radius:8px; min-width:80px;
+    }
+    .w-metric .val { font-size:22px; font-weight:700; color:#495057; }
+    .w-metric .lbl { font-size:11px; color:#999; margin-top:2px; }
+
+    .weather-delay-box {
+      display:none;
+      background:#dc3545; color:white;
+      padding:14px 22px; border-radius:10px;
+      text-align:center; min-width:160px;
+    }
+    .weather-delay-box.show { display:block; animation:pulse-red-box 2s infinite; }
+    .weather-delay-box.orange { background:#ff9800; animation:pulse-orange-box 2s infinite; }
+    .weather-delay-box .delay-min { font-size:28px; font-weight:800; }
+    .weather-delay-box .delay-lbl { font-size:12px; opacity:0.9; }
+    .weather-delay-box .delay-note { font-size:10px; opacity:0.75; margin-top:3px; }
+
+    @keyframes pulse-red-box {
+      0%,100% { box-shadow:0 0 0 0 rgba(220,53,69,.5); }
+      50% { box-shadow:0 0 0 10px rgba(220,53,69,0); }
+    }
+    @keyframes pulse-orange-box {
+      0%,100% { box-shadow:0 0 0 0 rgba(255,152,0,.5); }
+      50% { box-shadow:0 0 0 10px rgba(255,152,0,0); }
+    }
+
+    .weather-trend {
+      display:flex; gap:6px; align-items:center;
+      flex-wrap:wrap;
+    }
+    .trend-slot {
+      display:flex; flex-direction:column; align-items:center;
+      gap:2px;
+    }
+    .trend-icon { font-size:18px; }
+    .trend-time { font-size:9px; color:#999; }
+    .trend-mm { font-size:10px; color:#666; font-weight:600; }
+
+    .weather-error {
+      color:#dc3545; font-size:13px; font-style:italic;
+    }
+    /* ============================= */
+
+    .stats-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:20px; margin-bottom:30px;
+    }
+    .stat-card {
+      background:white; padding:25px; border-radius:12px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1); border-left:4px solid #667eea;
+    }
+    .stat-card.warning { border-left-color:#ffc107; }
+    .stat-card.danger  { border-left-color:#dc3545; }
+    .stat-card.success { border-left-color:#28a745; }
+    .stat-number { font-size:36px; font-weight:bold; color:#667eea; margin-bottom:5px; }
+    .stat-label  { color:#6c757d; font-size:14px; }
+
+    .controls {
+      background:white; padding:20px; border-radius:12px;
+      margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      display:flex; gap:15px; align-items:center; flex-wrap:wrap;
+    }
+    .search-box { flex:1; min-width:250px; }
+    .search-box input {
+      width:100%; padding:10px 15px; border:2px solid #e0e0e0;
+      border-radius:8px; font-size:14px;
+    }
+    .search-box input:focus { outline:none; border-color:#667eea; }
+    .filter-btn {
+      padding:10px 20px; border:none; border-radius:8px;
+      cursor:pointer; font-weight:bold; transition:all .3s;
+    }
+    .filter-btn.active { background:#667eea; color:white; }
+    .filter-btn:not(.active) { background:#e0e0e0; color:#666; }
+    .refresh-btn { background:#28a745; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+    .export-btn  { background:#17a2b8; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+
+    .emergency-section {
+      background:#fff; border-radius:12px; padding:20px;
+      margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    .emergency-header {
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:15px; padding-bottom:10px;
+      border-bottom:3px solid #dc3545;
+    }
+    .emergency-header h2 { color:#dc3545; font-size:20px; margin:0; }
+    .emergency-stats {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:15px; margin-bottom:15px;
+    }
+    .emergency-stat {
+      background:#f8f9fa; padding:15px; border-radius:8px;
+      text-align:center; border-left:4px solid;
+    }
+    .emergency-stat.waspada { border-left-color:#ffc107; }
+    .emergency-stat.siaga   { border-left-color:#ff9800; }
+    .emergency-stat.awas    { border-left-color:#dc3545; }
+    .emergency-stat.sos     { border-left-color:#000; }
+    .emergency-stat .number { font-size:28px; font-weight:bold; margin-bottom:5px; }
+    .emergency-stat.waspada .number { color:#ffc107; }
+    .emergency-stat.siaga   .number { color:#ff9800; }
+    .emergency-stat.awas    .number { color:#dc3545; }
+    .emergency-stat.sos     .number { color:#000; }
+    .emergency-stat .label  { font-size:12px; color:#6c757d; }
+
+    .emergency-table { width:100%; border-collapse:collapse; }
+    .emergency-table th { background:#dc3545; color:white; padding:12px; text-align:left; font-size:13px; }
+    .emergency-table td { padding:12px; border-bottom:1px solid #e0e0e0; font-size:13px; }
+    .emergency-table tr:hover { background:#fff3cd; }
+
+    .alert-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 12px; border-radius:20px; font-weight:bold; font-size:11px;
+    }
+    .alert-badge .dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+    .alert-waspada { background:#fff3cd; color:#856404; }
+    .alert-waspada .dot { background:#ffc107; animation:pulse-yellow 2s infinite; }
+    .alert-siaga   { background:#ffe5b4; color:#cc7a00; }
+    .alert-siaga   .dot { background:#ff9800; animation:pulse-orange 2s infinite; }
+    .alert-awas    { background:#f8d7da; color:#721c24; }
+    .alert-awas    .dot { background:#dc3545; animation:pulse-red 1.5s infinite; }
+    .alert-sos     { background:#d3d3d3; color:#000; }
+    .alert-sos     .dot { background:#000; animation:pulse-black 1s infinite; }
+
+    @keyframes pulse-yellow { 0%,100%{box-shadow:0 0 0 0 rgba(255,193,7,.7);}50%{box-shadow:0 0 0 8px rgba(255,193,7,0);} }
+    @keyframes pulse-orange { 0%,100%{box-shadow:0 0 0 0 rgba(255,152,0,.7);}50%{box-shadow:0 0 0 8px rgba(255,152,0,0);} }
+    @keyframes pulse-red    { 0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.7);}50%{box-shadow:0 0 0 10px rgba(220,53,69,0);} }
+    @keyframes pulse-black  { 0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,.7);}50%{box-shadow:0 0 0 10px rgba(0,0,0,0);} }
+
+    .no-emergency { text-align:center; padding:30px; color:#28a745; font-size:16px; font-weight:bold; }
+
+    .table-container { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; }
+    table { width:100%; border-collapse:collapse; }
+    th { background:#667eea; color:white; padding:15px; text-align:left; font-weight:600; position:sticky; top:0; z-index:10; }
+    td { padding:12px 15px; border-bottom:1px solid #e0e0e0; }
+    tr:hover { background:#f8f9fa; }
+
+    .status-badge { display:inline-block; padding:5px 12px; border-radius:15px; font-size:11px; font-weight:bold; }
+    .status-naik    { background:#d4edda; color:#155724; }
+    .status-rest    { background:#fff3cd; color:#856404; }
+    .status-camping { background:#d1ecf1; color:#0c5460; }
+    .status-summit  { background:#e2d9f3; color:#6f42c1; }
+    .status-exit    { background:#e2e3e5; color:#383d41; }
+    .status-turun   { background:#ffeaa7; color:#d63031; }
+    .status-sos     { background:#f8d7da; color:#721c24; animation:blink 1s infinite; }
+    @keyframes blink { 0%,50%,100%{opacity:1;}25%,75%{opacity:0.6;} }
+
+    .pos-timeline { display:flex; align-items:center; gap:8px; padding:10px 0; overflow-x:auto; }
+    .pos-item { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:60px; }
+    .pos-dot {
+      width:24px; height:24px; border-radius:50%;
+      background:#e0e0e0; border:3px solid #e0e0e0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:10px; font-weight:bold; color:#999;
+    }
+    .pos-dot.active  { background:#28a745; border-color:#28a745; color:white; box-shadow:0 0 0 4px rgba(40,167,69,0.2); }
+    .pos-dot.current { background:#667eea; border-color:#667eea; color:white; box-shadow:0 0 0 4px rgba(102,126,234,0.3); animation:pulse-pos 2s infinite; }
+    .pos-dot.predicted { background:white; border:3px dashed #ff9800; color:#ff9800; box-shadow:0 0 0 4px rgba(255,152,0,0.1); }
+    @keyframes pulse-pos { 0%,100%{transform:scale(1);}50%{transform:scale(1.1);} }
+    .pos-arrow { width:20px; height:2px; background:#ddd; position:relative; }
+    .pos-arrow.active { background:#28a745; }
+    .pos-arrow::after { content:''; position:absolute; right:-4px; top:-3px; width:0; height:0; border-left:8px solid #ddd; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+    .pos-arrow.active::after { border-left-color:#28a745; }
+    .pos-label { font-size:10px; color:#666; text-align:center; white-space:nowrap; }
+    .pos-time  { font-size:9px; color:#999; text-align:center; }
+    .prediction-badge { background:#ff9800; color:white; padding:2px 6px; border-radius:10px; font-size:9px; font-weight:bold; margin-top:2px; }
+    /* Rain-adjusted prediction badge */
+    .prediction-badge.rain-adj { background:#dc3545; }
+
+    .status-info { display:flex; flex-direction:column; gap:5px; }
+    .status-main { font-weight:bold; color:#667eea; font-size:13px; }
+    .loading { text-align:center; padding:50px; color:#667eea; font-size:18px; }
+    .no-data { text-align:center; padding:50px; color:#999; }
+
+    /* Rain-adjusted ETA row */
+    .rain-eta-row {
+      display:flex; align-items:center; gap:5px;
+      margin-top:4px;
+    }
+    .rain-eta-original { font-size:11px; color:#999; text-decoration:line-through; }
+    .rain-eta-adjusted { font-size:11px; font-weight:700; color:#dc3545; }
+    .rain-eta-badge {
+      font-size:10px; background:#dc3545; color:white;
+      padding:1px 6px; border-radius:8px;
+    }
+
+    @media(max-width:768px){
+      .emergency-stats { grid-template-columns:repeat(2,1fr); }
+      .weather-metrics { gap:12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 Dashboard Monitoring Pendakian</h1>
+    <p>Real-time tracking semua pendaki • Update otomatis setiap 30 detik</p>
+  </div>
+
+  <!-- ===== WEATHER PANEL ===== -->
+  <div class="weather-section" id="weatherSection">
+    <div class="weather-left">
+      <div class="weather-icon-big" id="wIcon">⏳</div>
+      <div class="weather-text">
+        <h3 id="wLabel">Memuat cuaca...</h3>
+        <div class="precip-label" id="wPrecipLabel"></div>
+        <div class="update-time" id="wUpdateTime">Gunung Gede Pangrango</div>
+      </div>
+    </div>
+
+    <!-- Next-hour mini forecast trend -->
+    <div class="weather-trend" id="wTrend" style="display:none"></div>
+
+    <!-- Metrics -->
+    <div class="weather-metrics" id="wMetrics" style="display:none">
+      <div class="w-metric">
+        <div class="val" id="wPrecipVal">--</div>
+        <div class="lbl">mm/jam</div>
+      </div>
+      <div class="w-metric">
+        <div class="val" id="wTempVal">--</div>
+        <div class="lbl">°C</div>
+      </div>
+      <div class="w-metric">
+        <div class="val" id="wWindVal">--</div>
+        <div class="lbl">km/h angin</div>
+      </div>
+    </div>
+
+    <!-- Rain delay box -->
+    <div class="weather-delay-box" id="wDelayBox">
+      <div class="delay-min" id="wDelayMin">+0 mnt</div>
+      <div class="delay-lbl">⏱️ Delay Hujan Aktif</div>
+      <div class="delay-note" id="wDelayNote">ETA semua pos disesuaikan</div>
+    </div>
+  </div>
+  <!-- ========================= -->
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-number" id="totalPendaki">-</div>
+      <div class="stat-label">Total Pendaki</div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-number" id="diJalur">-</div>
+      <div class="stat-label">Sedang di Jalur</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="puncak">-</div>
+      <div class="stat-label">Mencapai Puncak</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-number" id="istirahat">-</div>
+      <div class="stat-label">Istirahat/Camping</div>
+    </div>
+    <div class="stat-card danger">
+      <div class="stat-number" id="sos">-</div>
+      <div class="stat-label">⚠️ SOS Emergency</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="searchBox" placeholder="🔍 Cari nama pendaki atau NIK...">
+    </div>
+    <button class="filter-btn active" data-filter="all">Semua</button>
+    <button class="filter-btn" data-filter="active">Aktif di Jalur</button>
+    <button class="filter-btn" data-filter="sos">🆘 SOS</button>
+    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+    <button class="export-btn" onclick="exportToCSV()">📥 Export CSV</button>
+  </div>
+
+  <div class="emergency-section" id="emergencySection" style="display:none;">
+    <div class="emergency-header">
+      <h2>🚨 MONITORING DARURAT</h2>
+      <span style="color:#999;font-size:12px;">Pendaki yang melewati prediksi ETA (dengan penyesuaian cuaca)</span>
+    </div>
+    <div class="emergency-stats">
+      <div class="emergency-stat waspada">
+        <div class="number" id="countWaspada">0</div>
+        <div class="label">🟡 Waspada<br>(Delay 1+ jam)</div>
+      </div>
+      <div class="emergency-stat siaga">
+        <div class="number" id="countSiaga">0</div>
+        <div class="label">🟠 Siaga<br>(Delay 2+ jam)</div>
+      </div>
+      <div class="emergency-stat awas">
+        <div class="number" id="countAwas">0</div>
+        <div class="label">🔴 Awas<br>(Delay 3+ jam)</div>
+      </div>
+      <div class="emergency-stat sos">
+        <div class="number" id="countSOS">0</div>
+        <div class="label">⚫ SOS<br>(Butuh Ranger)</div>
+      </div>
+    </div>
+    <div id="emergencyTableContainer"></div>
+  </div>
+
+  <div class="table-container">
+    <div class="loading" id="loading">⏳ Memuat data pendaki...</div>
+    <div class="no-data" id="noData" style="display:none;">📭 Belum ada data pendaki</div>
+    <table id="dataTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Pendaki</th>
+          <th>Kelompok</th>
+          <th>Timeline Pos</th>
+          <th>Status & Prediksi</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // ============================================================
+    // KONFIGURASI UTAMA
+    // ============================================================
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec';
+
+    // Koordinat Gunung Gede Pangrango (tengah jalur Cibodas)
+    const MOUNTAIN_LAT = -6.76;
+    const MOUNTAIN_LON = 107.01;
+
+    // Threshold hujan BMKG: hujan sedang >= 5 mm/jam
+    const RAIN_MODERATE_THRESHOLD = 5; // mm/jam
+
+    // Interval polling cuaca (15 menit)
+    const WEATHER_POLL_MS = 15 * 60 * 1000;
+    // ============================================================
+
+    let allData = [];
+    let currentFilter = 'all';
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+
+    // ===== STATE CUACA =====
+    let rainDelayMinutes = 0;    // Total delay akumulatif karena hujan (menit)
+    let currentPrecipRate = 0;   // mm/jam saat ini
+    let isRainingModerate = false;
+    let weatherFetchError = false;
+    // =======================
+
+    const posNames = {
+      1:'Pos 1', 2:'Pos 2', 3:'Pos 3', 4:'Pos 4', 5:'Pos 5',
+      6:'Pos 6', 7:'Pos 7', 8:'Pos 8', 9:'Puncak'
+    };
+
+    const statusConfig = {
+      'CHECK-IN-NAIK':     { class:'status-naik',    label:'🔼 Naik' },
+      'REST-BREAK':        { class:'status-rest',    label:'☕ Istirahat' },
+      'CAMPING-OVERNIGHT': { class:'status-camping', label:'⛺ Camping' },
+      'SUMMIT-REACHED':    { class:'status-summit',  label:'🏔️ Puncak' },
+      'CHECK-IN-TURUN':    { class:'status-turun',   label:'🔽 Turun' },
+      'CHECK-OUT-EXIT':    { class:'status-exit',    label:'✅ Selesai' },
+      'SOS-EMERGENCY':     { class:'status-sos',     label:'🚨 SOS' }
+    };
+
+    // ============================================================
+    // CUACA: Klasifikasi & Fungsi
+    // ============================================================
+
+    /**
+     * Klasifikasi cuaca berdasarkan curah hujan (mm/jam)
+     * Menggunakan standar BMKG:
+     *   Cerah       : 0
+     *   Ringan      : 0 < x < 5
+     *   Sedang      : 5 ≤ x < 20
+     *   Lebat       : 20 ≤ x < 50
+     *   Sangat Lebat: ≥ 50
+     */
+    function classifyRain(mmPerHour) {
+      if (mmPerHour <= 0)    return { label:'Cerah',        icon:'☀️',  cssClass:'', colorClass:'' };
+      if (mmPerHour < 5)     return { label:'Hujan Ringan', icon:'🌦️', cssClass:'', colorClass:'' };
+      if (mmPerHour < 20)    return { label:'Hujan Sedang', icon:'🌧️', cssClass:'rain-sedang', colorClass:'#007bff' };
+      if (mmPerHour < 50)    return { label:'Hujan Lebat',  icon:'⛈️', cssClass:'rain-lebat',  colorClass:'#dc3545' };
+      return                        { label:'Hujan Sangat Lebat', icon:'🌊', cssClass:'rain-lebat', colorClass:'#7b0000' };
+    }
+
+    /**
+     * Ambil data cuaca dari Open-Meteo API
+     * - minutely_15: presipitasi per 15 menit (dikonversi ke mm/jam)
+     * - Polling setiap 15 menit
+     * - Jika precipRate >= 5 mm/jam: tambah 15 menit ke rainDelayMinutes
+     */
+    async function fetchWeather() {
+      try {
+        const params = new URLSearchParams({
+          latitude: MOUNTAIN_LAT,
+          longitude: MOUNTAIN_LON,
+          minutely_15: 'precipitation,temperature_2m,wind_speed_10m',
+          forecast_minutely_15: 6,  // 6 slot × 15 menit = 1.5 jam ke depan
+          timezone: 'Asia/Jakarta'
+        });
+
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const m15 = data.minutely_15;
+        // Slot [0] = interval 15 menit yang sedang berjalan
+        const precip15min = m15.precipitation[0] || 0; // mm per 15 menit
+        const precipRate  = precip15min * 4;            // konversi ke mm/jam
+        const tempC       = m15.temperature_2m[0] || 0;
+        const windKmh     = m15.wind_speed_10m[0] || 0;
+
+        currentPrecipRate  = precipRate;
+        isRainingModerate  = precipRate >= RAIN_MODERATE_THRESHOLD;
+        weatherFetchError  = false;
+
+        // ---- LOGIKA AKUMULASI DELAY HUJAN ----
+        // Setiap polling 15 menit: jika masih hujan sedang/lebat, tambah +15 menit
+        if (isRainingModerate) {
+          rainDelayMinutes += 15;
+          console.log(`[Cuaca] Hujan sedang terdeteksi ${precipRate.toFixed(1)} mm/h → total delay: ${rainDelayMinutes} menit`);
+        } else {
+          console.log(`[Cuaca] Tidak hujan sedang (${precipRate.toFixed(1)} mm/h) → delay tidak bertambah`);
+        }
+
+        // Bangun data trend 6 slot ke depan
+        const trendData = m15.time.slice(0, 6).map((t, i) => ({
+          time: new Date(t),
+          precip: (m15.precipitation[i] || 0) * 4,
+          temp: m15.temperature_2m[i] || 0
+        }));
+
+        updateWeatherUI({ precipRate, tempC, windKmh, trendData });
+
+        // Re-render tabel dengan delay terbaru
+        if (allData.length > 0) {
+          renderEmergencySection();
+          renderTable();
+        }
+      } catch (err) {
+        console.error('[Cuaca] Gagal fetch:', err);
+        weatherFetchError = true;
+        updateWeatherUI(null); // tampilkan error
+      }
+    }
+
+    /** Update tampilan panel cuaca */
+    function updateWeatherUI(w) {
+      const section = document.getElementById('weatherSection');
+      const wIcon   = document.getElementById('wIcon');
+      const wLabel  = document.getElementById('wLabel');
+      const wPrecipLabel = document.getElementById('wPrecipLabel');
+      const wUpdateTime  = document.getElementById('wUpdateTime');
+      const wMetrics     = document.getElementById('wMetrics');
+      const wTrend       = document.getElementById('wTrend');
+      const wDelayBox    = document.getElementById('wDelayBox');
+
+      if (!w) {
+        wIcon.textContent = '❓';
+        wLabel.textContent = 'Data cuaca tidak tersedia';
+        wUpdateTime.textContent = 'Gagal terhubung ke Open-Meteo';
+        wMetrics.style.display = 'none';
+        return;
+      }
+
+      const cls = classifyRain(w.precipRate);
+      section.className = `weather-section ${cls.cssClass}`;
+      wIcon.textContent = cls.icon;
+      wLabel.textContent = cls.label;
+      wPrecipLabel.textContent = w.precipRate > 0
+        ? `Intensitas: ${w.precipRate.toFixed(1)} mm/jam`
+        : 'Tidak ada hujan saat ini';
+      wUpdateTime.textContent = `Gunung Gede Pangrango · Update ${new Date().toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}`;
+
+      // Metrics
+      wMetrics.style.display = 'flex';
+      document.getElementById('wPrecipVal').textContent = w.precipRate.toFixed(1);
+      document.getElementById('wTempVal').textContent   = Math.round(w.tempC);
+      document.getElementById('wWindVal').textContent   = Math.round(w.windKmh);
+
+      // Trend 6 slot
+      if (w.trendData && w.trendData.length) {
+        wTrend.style.display = 'flex';
+        wTrend.innerHTML = w.trendData.map(slot => {
+          const c = classifyRain(slot.precip);
+          const timeStr = slot.time.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+          return `<div class="trend-slot">
+            <div class="trend-icon">${c.icon}</div>
+            <div class="trend-mm">${slot.precip.toFixed(1)}</div>
+            <div class="trend-time">${timeStr}</div>
+          </div>`;
+        }).join('<div style="color:#ccc;align-self:center;font-size:10px;">›</div>');
+      }
+
+      // Delay box
+      if (rainDelayMinutes > 0) {
+        wDelayBox.classList.add('show');
+        wDelayBox.className = `weather-delay-box show ${w.precipRate >= 20 ? 'orange' : ''}`;
+        document.getElementById('wDelayMin').textContent = `+${rainDelayMinutes} mnt`;
+        document.getElementById('wDelayNote').textContent =
+          `ETA semua pos +${rainDelayMinutes} mnt (hujan ${isRainingModerate ? 'masih berlangsung' : 'telah berhenti'})`;
+      } else {
+        wDelayBox.classList.remove('show');
+      }
+    }
+
+    // ============================================================
+    // HELPER: Tambahkan delay cuaca ke prediksi waktu
+    // ============================================================
+
+    /**
+     * Kembalikan Date obyek dengan penambahan rainDelayMinutes.
+     * Dipakai hanya untuk tampilan; PredPosN di sheet tidak diubah.
+     */
+    function adjustedPredTime(predTimeStr) {
+      if (!predTimeStr) return null;
+      const base = new Date(predTimeStr);
+      if (isNaN(base)) return null;
+      return new Date(base.getTime() + rainDelayMinutes * 60 * 1000);
+    }
+
+    // ============================================================
+    // LOAD DATA PENDAKI
+    // ============================================================
+    async function loadData() {
+      try {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('dataTable').style.display = 'none';
+        document.getElementById('noData').style.display = 'none';
+
+        const response = await fetch(`${APPS_SCRIPT_URL}?dashboard=true`);
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error);
+
+        const now = new Date();
+        allData = result.data
+          .map(r => ({
+            hikername: r.hikername || '',
+            nik: r.nik || '',
+            groupname: r.groupname || 'Individu',
+            uniqueid: r.uniqueid || '',
+            latestStatus: r.LatestStatus || '',
+            latestActivity: r.LatestActivity || '',
+            StatPos1:r.StatPos1||'', timePos1:r.timePos1||'',
+            StatPos2:r.StatPos2||'', timePos2:r.timePos2||'',
+            StatPos3:r.StatPos3||'', timePos3:r.timePos3||'',
+            StatPos4:r.StatPos4||'', timePos4:r.timePos4||'',
+            StatPos5:r.StatPos5||'', timePos5:r.timePos5||'',
+            StatPos6:r.StatPos6||'', timePos6:r.timePos6||'',
+            StatPos7:r.StatPos7||'', timePos7:r.timePos7||'',
+            StatPos8:r.StatPos8||'', timePos8:r.timePos8||'',
+            StatPos9:r.StatPos9||'', timePos9:r.timePos9||'',
+            PredPos1:r.PredPos1||'', PredPos2:r.PredPos2||'',
+            PredPos3:r.PredPos3||'', PredPos4:r.PredPos4||'',
+            PredPos5:r.PredPos5||'', PredPos6:r.PredPos6||'',
+            PredPos7:r.PredPos7||'', PredPos8:r.PredPos8||'',
+            PredPos9:r.PredPos9||''
+          }))
+          .filter(r => {
+            if (r.latestStatus === 'CHECK-OUT-EXIT' && r.latestActivity) {
+              return (now - new Date(r.latestActivity)) <= THREE_DAYS_MS;
+            }
+            return true;
+          });
+
+        updateStats();
+        renderEmergencySection();
+        renderTable();
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById(allData.length ? 'dataTable' : 'noData').style.display =
+          allData.length ? 'table' : 'block';
+      } catch (err) {
+        document.getElementById('loading').innerHTML = `❌ Gagal memuat data: ${err.message}`;
+      }
+    }
+
+    function updateStats() {
+      const s = { total:allData.length, diJalur:0, puncak:0, istirahat:0, sos:0 };
+      allData.forEach(r => {
+        const st = r.latestStatus;
+        if (st === 'CHECK-IN-NAIK' || st === 'CHECK-IN-TURUN') s.diJalur++;
+        if (st === 'SUMMIT-REACHED') s.puncak++;
+        if (st === 'REST-BREAK' || st === 'CAMPING-OVERNIGHT') s.istirahat++;
+        if (st === 'SOS-EMERGENCY') s.sos++;
+      });
+      document.getElementById('totalPendaki').textContent = s.total;
+      document.getElementById('diJalur').textContent = s.diJalur;
+      document.getElementById('puncak').textContent = s.puncak;
+      document.getElementById('istirahat').textContent = s.istirahat;
+      document.getElementById('sos').textContent = s.sos;
+    }
+
+    // ============================================================
+    // ALERT LEVEL — menggunakan prediksi yang sudah disesuaikan cuaca
+    // ============================================================
+    function calculateAlertLevel(row) {
+      if (row.latestStatus === 'CHECK-OUT-EXIT') return null;
+
+      const lastPos  = getLastPos(row);
+      const direction = getDirection(row);
+      if (!lastPos || !direction) return null;
+
+      let nextPos = null;
+      if (direction === 'NAIK'  && lastPos.pos < 9) nextPos = lastPos.pos + 1;
+      if (direction === 'TURUN' && lastPos.pos > 1) nextPos = lastPos.pos - 1;
+      if (!nextPos) return null;
+
+      const predTimeStr = row[`PredPos${nextPos}`];
+      if (!predTimeStr) return null;
+
+      // Gunakan ETA yang SUDAH disesuaikan cuaca untuk menghitung delay alert
+      const adjPred = adjustedPredTime(predTimeStr);
+      if (!adjPred) return null;
+
+      const now = new Date();
+      const delayMs    = now - adjPred;
+      const delayHours = delayMs / (1000 * 60 * 60);
+
+      if (delayHours < 1) return null;
+
+      if (row.latestStatus === 'SOS-EMERGENCY') {
+        return { level:'SOS', delayHours, nextPos, predTime:predTimeStr };
+      }
+      if (delayHours >= 3) return { level:'AWAS',   delayHours, nextPos, predTime:predTimeStr };
+      if (delayHours >= 2) return { level:'SIAGA',  delayHours, nextPos, predTime:predTimeStr };
+      return                      { level:'WASPADA', delayHours, nextPos, predTime:predTimeStr };
+    }
+
+    function renderEmergencySection() {
+      const emergencyData = allData
+        .map(r => ({ ...r, alert: calculateAlertLevel(r) }))
+        .filter(r => r.alert !== null)
+        .sort((a, b) => {
+          const p = { SOS:4, AWAS:3, SIAGA:2, WASPADA:1 };
+          return (p[b.alert.level] || 0) - (p[a.alert.level] || 0);
+        });
+
+      const counts = { WASPADA:0, SIAGA:0, AWAS:0, SOS:0 };
+      emergencyData.forEach(r => counts[r.alert.level]++);
+
+      document.getElementById('countWaspada').textContent = counts.WASPADA;
+      document.getElementById('countSiaga').textContent   = counts.SIAGA;
+      document.getElementById('countAwas').textContent    = counts.AWAS;
+      document.getElementById('countSOS').textContent     = counts.SOS;
+
+      const section   = document.getElementById('emergencySection');
+      const container = document.getElementById('emergencyTableContainer');
+
+      if (emergencyData.length === 0) { section.style.display='none'; return; }
+      section.style.display = 'block';
+
+      let html = '<table class="emergency-table"><thead><tr>';
+      html += '<th>Level</th><th>Nama</th><th>Kelompok</th>';
+      html += '<th>Pos Terakhir</th><th>Tujuan</th>';
+      html += '<th>ETA Base</th>';
+      if (rainDelayMinutes > 0) html += '<th>ETA +Hujan</th>';
+      html += '<th>Delay</th></tr></thead><tbody>';
+
+      emergencyData.forEach(r => {
+        const lastPos = getLastPos(r);
+        const alert   = r.alert;
+        const badgeMap = {
+          WASPADA: ['alert-waspada', '🟡 WASPADA'],
+          SIAGA:   ['alert-siaga',   '🟠 SIAGA'],
+          AWAS:    ['alert-awas',    '🔴 AWAS'],
+          SOS:     ['alert-sos',     '⚫ SOS']
+        };
+        const [bc, bl] = badgeMap[alert.level] || ['',''];
+
+        html += '<tr>';
+        html += `<td><span class="alert-badge ${bc}"><span class="dot"></span>${bl}</span></td>`;
+        html += `<td><strong>${r.hikername}</strong></td>`;
+        html += `<td>${r.groupname}</td>`;
+        html += `<td>${posNames[lastPos.pos]}<br><small style="color:#999">${formatTime(lastPos.time)}</small></td>`;
+        html += `<td><strong>${posNames[alert.nextPos]}</strong></td>`;
+        html += `<td>${formatTime(alert.predTime)}</td>`;
+        if (rainDelayMinutes > 0) {
+          const adj = adjustedPredTime(alert.predTime);
+          html += `<td><span style="color:#dc3545;font-weight:700;">${adj ? formatTime(adj) : '-'}</span> <span style="font-size:10px;color:#dc3545;">(+${rainDelayMinutes}m 🌧️)</span></td>`;
+        }
+        html += `<td><strong style="color:#dc3545">+${Math.floor(alert.delayHours)}h ${Math.floor((alert.delayHours%1)*60)}m</strong></td>`;
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function getLastPos(row) {
+      for (let i = 9; i >= 1; i--) {
+        if (row[`timePos${i}`]) return { pos:i, status:row[`StatPos${i}`], time:row[`timePos${i}`] };
+      }
+      return null;
+    }
+
+    function getDirection(row) {
+      const s = row.latestStatus;
+      if (!s) return null;
+      if (/EXIT/i.test(s)) return null;
+      if (/NAIK|SUMMIT|REST|CAMPING/i.test(s) && !/TURUN/i.test(s)) return 'NAIK';
+      if (/TURUN/i.test(s)) return 'TURUN';
+      return null;
+    }
+
+    function renderTimeline(row) {
+      const lastPos   = getLastPos(row);
+      let html = '<div class="pos-timeline">';
+
+      for (let i = 1; i <= 9; i++) {
+        const hasPassed  = !!row[`timePos${i}`];
+        const isCurrent  = lastPos && lastPos.pos === i;
+        const predTimeStr = row[`PredPos${i}`];
+        const isPredicted = !hasPassed && !!predTimeStr;
+
+        let dotClass = '';
+        if (isCurrent)     dotClass = 'current';
+        else if (hasPassed) dotClass = 'active';
+        else if (isPredicted) dotClass = 'predicted';
+
+        // Waktu aktual, atau jika prediksi: tampilkan ETA yang disesuaikan cuaca
+        let displayTime = '';
+        let isAdjusted  = false;
+        if (hasPassed) {
+          displayTime = formatTime(row[`timePos${i}`]);
+        } else if (isPredicted) {
+          if (rainDelayMinutes > 0) {
+            const adj = adjustedPredTime(predTimeStr);
+            displayTime = adj ? formatTime(adj) : formatTime(predTimeStr);
+            isAdjusted  = true;
+          } else {
+            displayTime = formatTime(predTimeStr);
+          }
+        }
+
+        html += `<div class="pos-item">`;
+        html += `<div class="pos-dot ${dotClass}">${i}</div>`;
+        html += `<div class="pos-label">${posNames[i]}</div>`;
+        if (displayTime) html += `<div class="pos-time">${displayTime}</div>`;
+        if (isPredicted) {
+          const badgeExtra = isAdjusted ? ' rain-adj' : '';
+          html += `<div class="prediction-badge${badgeExtra}">${isAdjusted ? '🌧️+'+rainDelayMinutes+'m' : 'Prediksi'}</div>`;
+        }
+        html += `</div>`;
+
+        if (i < 9) {
+          html += `<div class="pos-arrow ${hasPassed ? 'active' : ''}"></div>`;
+        }
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    function renderTable() {
+      const q = document.getElementById('searchBox').value.toLowerCase();
+      let data = allData.filter(r =>
+        r.hikername.toLowerCase().includes(q) ||
+        r.nik.toLowerCase().includes(q)
+      );
+
+      if (currentFilter === 'active') {
+        data = data.filter(r => ['CHECK-IN-NAIK','CHECK-IN-TURUN','REST-BREAK','CAMPING-OVERNIGHT'].includes(r.latestStatus));
+      }
+      if (currentFilter === 'sos') {
+        data = data.filter(r => r.latestStatus === 'SOS-EMERGENCY');
+      }
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      data.forEach(r => {
+        const timeline    = renderTimeline(r);
+        const info        = statusConfig[r.latestStatus] || { class:'', label: r.latestStatus || '-' };
+        const badge       = `<span class="status-badge ${info.class}">${info.label}</span>`;
+        const lastPos     = getLastPos(r);
+        const lastPosName = lastPos ? posNames[lastPos.pos] : '-';
+        const lastTime    = lastPos ? formatTime(lastPos.time) : '-';
+        const timeAgo     = lastPos ? getTimeAgo(lastPos.time) : '';
+        const direction   = getDirection(r);
+
+        let nextPrediction = '';
+        if (direction === 'NAIK' && lastPos && lastPos.pos < 9) {
+          const np = lastPos.pos + 1;
+          const pt = r[`PredPos${np}`];
+          if (pt) {
+            const adjPt = adjustedPredTime(pt);
+            const baseStr = formatTime(pt);
+            const adjStr  = adjPt ? formatTime(adjPt) : baseStr;
+
+            if (rainDelayMinutes > 0 && adjStr !== baseStr) {
+              // Tampilkan: prediksi asli (coret) + ETA cuaca (merah)
+              nextPrediction = `
+                <div class="rain-eta-row" title="ETA disesuaikan cuaca">
+                  📍 ${posNames[np]}:
+                  <span class="rain-eta-original">${baseStr}</span>
+                  <span class="rain-eta-adjusted">${adjStr}</span>
+                  <span class="rain-eta-badge">🌧️+${rainDelayMinutes}m</span>
+                </div>`;
+            } else {
+              nextPrediction = `<div style="color:#ff9800;font-size:11px;margin-top:5px;">
+                📍 Prediksi ${posNames[np]}: ${baseStr}
+              </div>`;
+            }
+          }
+        } else if (direction === 'TURUN' && lastPos && lastPos.pos > 1) {
+          const np = lastPos.pos - 1;
+          const pt = r[`PredPos${np}`];
+          if (pt) {
+            const adjPt = adjustedPredTime(pt);
+            const baseStr = formatTime(pt);
+            const adjStr  = adjPt ? formatTime(adjPt) : baseStr;
+
+            if (rainDelayMinutes > 0 && adjStr !== baseStr) {
+              nextPrediction = `
+                <div class="rain-eta-row" title="ETA disesuaikan cuaca">
+                  📍 ${posNames[np]}:
+                  <span class="rain-eta-original">${baseStr}</span>
+                  <span class="rain-eta-adjusted">${adjStr}</span>
+                  <span class="rain-eta-badge">🌧️+${rainDelayMinutes}m</span>
+                </div>`;
+            } else {
+              nextPrediction = `<div style="color:#ff9800;font-size:11px;margin-top:5px;">
+                📍 Prediksi ${posNames[np]}: ${baseStr}
+              </div>`;
+            }
+          }
+        }
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${r.hikername}</strong><br><small style="color:#999">${r.nik}</small></td>
+            <td>${r.groupname}</td>
+            <td>${timeline}</td>
+            <td>
+              <div class="status-info">
+                <div class="status-main">${lastPosName}</div>
+                ${badge}
+                <div style="font-size:11px;color:#999;">Update: ${lastTime}</div>
+                <div style="font-size:10px;color:#bbb;">${timeAgo}</div>
+                ${nextPrediction}
+              </div>
+            </td>
+          </tr>`;
+      });
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      const d = new Date(timeStr);
+      if (isNaN(d)) return '';
+      return d.toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    }
+
+    function getTimeAgo(t) {
+      if (!t) return '';
+      const d = (new Date() - new Date(t)) / 60000;
+      if (d < 1)  return 'Baru saja';
+      if (d < 60) return `${Math.floor(d)} menit lalu`;
+      const h = d / 60;
+      if (h < 24) return `${Math.floor(h)} jam lalu`;
+      return `${Math.floor(h/24)} hari lalu`;
+    }
+
+    function exportToCSV() {
+      const csv = [
+        ['Nama','Kelompok','Status','Pos Terakhir','Waktu','Prediksi Berikutnya (Base)','Prediksi Berikutnya (+Cuaca)','Alert Level','Delay'].join(','),
+        ...allData.map(r => {
+          const lastPos = getLastPos(r);
+          const lastPosName = lastPos ? posNames[lastPos.pos] : '-';
+          const lastTime    = lastPos ? formatTime(lastPos.time) : '-';
+          const direction   = getDirection(r);
+          let predBase = '-', predAdj = '-', alertInfo = '', delayInfo = '';
+
+          if (direction === 'NAIK' && lastPos && lastPos.pos < 9) {
+            const np = lastPos.pos + 1;
+            if (r[`PredPos${np}`]) {
+              predBase = `${posNames[np]}: ${formatTime(r[`PredPos${np}`])}`;
+              const adj = adjustedPredTime(r[`PredPos${np}`]);
+              predAdj  = adj ? `${posNames[np]}: ${formatTime(adj)}` : predBase;
+            }
+          } else if (direction === 'TURUN' && lastPos && lastPos.pos > 1) {
+            const np = lastPos.pos - 1;
+            if (r[`PredPos${np}`]) {
+              predBase = `${posNames[np]}: ${formatTime(r[`PredPos${np}`])}`;
+              const adj = adjustedPredTime(r[`PredPos${np}`]);
+              predAdj  = adj ? `${posNames[np]}: ${formatTime(adj)}` : predBase;
+            }
+          }
+
+          const alert = calculateAlertLevel(r);
+          if (alert) {
+            alertInfo = alert.level;
+            delayInfo = `+${Math.floor(alert.delayHours)}h ${Math.floor((alert.delayHours%1)*60)}m`;
+          }
+
+          return [r.hikername, r.groupname, r.latestStatus, lastPosName, lastTime,
+                  predBase, predAdj, alertInfo, delayInfo].join(',');
+        })
+      ].join('\n');
+
+      const blob = new Blob([csv], { type:'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = `monitoring-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ============================================================
+    // EVENT LISTENERS & INIT
+    // ============================================================
+    document.getElementById('searchBox').addEventListener('input', renderTable);
+    document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
+      renderTable();
+    }));
+
+    // Auto-refresh data pendaki setiap 30 detik
+    setInterval(loadData, 30000);
+
+    // Auto-refresh cuaca setiap 15 menit
+    setInterval(fetchWeather, WEATHER_POLL_MS);
+
+    // Init: muat cuaca dulu, lalu data pendaki
+    fetchWeather();
+    loadData();
+  </script>
+</body>
+</html>
