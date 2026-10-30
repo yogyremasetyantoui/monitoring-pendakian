@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Form Pendaftaran Pendakian</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; color: #333; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, select {
+      width: 100%; padding: 8px; margin-top: 4px;
+      border: 1px solid #ccc; border-radius: 4px;
+    }
+    button {
+      background: #007bff; color: #fff; border: none;
+      padding: 10px 16px; border-radius: 4px;
+      cursor: pointer; margin-top: 15px;
+    }
+    button:hover { background: #0056b3; }
+    .member {
+      border: 1px solid #ccc; padding: 10px;
+      margin-top: 10px; border-radius: 4px; background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h2>Form Pendaftaran Pendakian</h2>
+
+  <form id="pendakianForm">
+    <label>Jenis Pendaftaran</label>
+    <select id="group" required>
+      <option value="">-- Pilih Jenis --</option>
+      <option value="0">Individu</option>
+      <option value="1">Kelompok</option>
+    </select>
+
+    <label>Tanggal Rencana Pendakian</label>
+    <input type="date" id="date" required>
+
+    <div id="groupSection" style="display:none;">
+      <label>Nama Group</label>
+      <input type="text" id="groupname" placeholder="Nama Kelompok">
+    </div>
+
+    <h3>Data Ketua</h3>
+    <label>Nama Ketua</label>
+    <input type="text" id="hikername0" required>
+    <label>NIK Ketua</label>
+    <input type="text" id="nik0" required>
+    <label>Email Ketua</label>
+    <input type="email" id="email0" required>
+    <label>No Telp Darurat Ketua</label>
+    <input type="text" id="phone0" required>
+
+    <div id="membersContainer" style="display:none;">
+      <h3>Anggota Kelompok</h3>
+      <div id="members"></div>
+      <button type="button" id="addMember">+ Tambah Anggota</button>
+    </div>
+
+    <button type="submit">Kirim Pendaftaran</button>
+  </form>
+
+  <script>
+    // GANTI DENGAN URL APPS SCRIPT KAMU SENDIRI
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec";
+
+    const form = document.getElementById("pendakianForm");
+    const groupSelect = document.getElementById("group");
+    const groupSection = document.getElementById("groupSection");
+    const membersContainer = document.getElementById("membersContainer");
+    const membersDiv = document.getElementById("members");
+    const addMemberBtn = document.getElementById("addMember");
+
+    let memberCount = 0;
+
+    groupSelect.addEventListener("change", () => {
+      const isGroup = groupSelect.value === "1";
+      groupSection.style.display = isGroup ? "block" : "none";
+      membersContainer.style.display = isGroup ? "block" : "none";
+    });
+
+    addMemberBtn.addEventListener("click", () => {
+      if (memberCount >= 9) {
+        alert("Maksimal 9 anggota tambahan!");
+        return;
+      }
+      memberCount++;
+      const div = document.createElement("div");
+      div.classList.add("member");
+      div.innerHTML = `
+        <h4>Anggota ${memberCount}</h4>
+        <label>Nama</label><input type="text" id="hikername${memberCount}" required>
+        <label>NIK</label><input type="text" id="nik${memberCount}" required>
+        <label>Email</label><input type="email" id="email${memberCount}" required>
+        <label>No Telp Darurat</label><input type="text" id="phone${memberCount}" required>
+      `;
+      membersDiv.appendChild(div);
+    });
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+
+      const data = {
+        group: groupSelect.value,
+        date: document.getElementById("date").value,
+        groupname: document.getElementById("groupname")?.value || "null",
+        hikername0: document.getElementById("hikername0").value,
+        nik0: document.getElementById("nik0").value,
+        email0: document.getElementById("email0").value,
+        phone0: document.getElementById("phone0").value,
+        members: []
+      };
+
+      for (let i = 1; i <= memberCount; i++) {
+        data.members.push({
+          name: document.getElementById(`hikername${i}`).value,
+          nik: document.getElementById(`nik${i}`).value,
+          email: document.getElementById(`email${i}`).value,
+          phone: document.getElementById(`phone${i}`).value
+        });
+      }
+
+      const params = new URLSearchParams({ data: JSON.stringify(data) });
+
+      // Kirim data via tab baru (bypass CORS)
+      window.open(`${scriptURL}?${params.toString()}`, '_blank');
+
+      alert("✅ Pendaftaran dikirim! Data akan masuk ke Google Sheet dalam beberapa detik.");
+      form.reset();
+      membersDiv.innerHTML = "";
+      memberCount = 0;
+    });
+  </script>
+</body>
+</html>
