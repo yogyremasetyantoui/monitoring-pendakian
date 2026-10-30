@@ -213,6 +213,7 @@ const H = (x, z) => Hm(x / UPP, z / UPP) * S * EXAG;
 const elevAt = v => Math.round(Hm(v.x / UPP, v.z / UPP));
 
 // ====== DUNIA 3D ======
+const LABEL_LIFT = 40;   // tinggi label melayang di atas pos (unit dunia) — perbesar jika masih menutupi pendaki
 let P = [], terrain = null, segCurves = [], segLen = [], segMeshes = [], posBars = [], posLabels = [];
 const sampleSeg = (k, u) => { const v = segCurves[k].getPointAt(clamp(u, 0, 1)); v.y = H(v.x, v.z) + 1.0; return v; };
 
@@ -265,7 +266,14 @@ function buildWorld() {
     const cv = document.createElement('canvas'); cv.width = 320; cv.height = 150;
     const tex = new THREE.CanvasTexture(cv);
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, transparent:true}));
-    sp.scale.set(22, 10.3, 1); sp.renderOrder = 10; scene.add(sp); posLabels.push({sp, cv, tex});
+    sp.scale.set(22, 10.3, 1); sp.renderOrder = 10; scene.add(sp);
+    // garis putus-putus (leader) dari label melayang ke titik pos di tanah + penanda titik
+    const lg = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(6, 3));
+    const ld = new THREE.Line(lg, new THREE.LineDashedMaterial({color:0xcbd5e1, dashSize:1.1, gapSize:1.6, transparent:true, opacity:.9, depthTest:false}));
+    ld.renderOrder = 9; ld.frustumCulled = false; scene.add(ld);
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(1.1, 12, 8), new THREE.MeshBasicMaterial({color:0xffffff, depthTest:false}));
+    dot.renderOrder = 9; dot.position.set(P[i].x, P[i].y + .3, P[i].z); scene.add(dot);
+    posLabels.push({sp, cv, tex, ld, dot});
     const ring = new THREE.Mesh(new THREE.RingGeometry(5.2, 6.6, 40).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({color:0xef4444, transparent:true, opacity:.7, side:THREE.DoubleSide}));
     ring.position.set(P[i].x, P[i].y + .8, P[i].z); ring.visible = false; scene.add(ring); rings.push(ring);
@@ -391,7 +399,11 @@ function render() {
   posBars.forEach((b, i) => {
     const c = heat(pc[i], CAP_POS), h = .6 + pc[i] * 1.0;
     b.scale.y = h; b.material.color.copy(c);
-    posLabels[i].sp.position.set(P[i].x, P[i].y + h + 6, P[i].z);
+    const L = posLabels[i], by = P[i].y + h + LABEL_LIFT;   // dasar label melayang di atas pos
+    L.sp.position.set(P[i].x, by + 5.15, P[i].z);
+    const pa = L.ld.geometry.attributes.position;
+    pa.setXYZ(0, P[i].x, P[i].y + .3, P[i].z); pa.setXYZ(1, P[i].x, by, P[i].z); pa.needsUpdate = true;
+    L.ld.computeLineDistances();
   });
 
   const top = (arr, name) => arr.map((c, i) => ({c, n:name(i)})).filter(o => o.c > 0).sort((a, b) => b.c - a.c).slice(0, 3)
@@ -532,7 +544,7 @@ async function load() {
 // ====== INTERAKSI ======
 function applyToggles() {
   hg.visible = $('tgH').checked;
-  posLabels.forEach(l => l.sp.visible = $('tgL').checked);
+  posLabels.forEach(l => { l.sp.visible = $('tgL').checked; l.ld.visible = l.dot.visible = l.sp.visible; });
 }
 ['tgH', 'tgL'].forEach(id => $(id).addEventListener('change', applyToggles));
 $('tgN').addEventListener('change', e => {   // mode malam
