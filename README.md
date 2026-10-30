@@ -4,12 +4,20 @@ Kembaran digital jalur pendakian Gunung Gede Pangrango via Jalur Putri. Setiap p
 
 Tujuannya: petugas melihat kondisi gunung seperti berdiri di semua pos sekaligus, lalu mengambil keputusan lebih cepat dan lebih tepat.
 
-**Demo langsung:** https://yogyremasetyantoui.github.io/monitoring-pendakian/dashboard_monitoring_3D.html
+## Alamat Aplikasi
 
-**Formulir pendaftaran + QR Code:** https://yogyremasetyantoui.github.io/monitoring-pendakian/form-pendaftaran-pendakian.html
+Seluruh halaman aplikasi dapat diakses melalui alamat berikut:
+
+| Halaman | Alamat |
+|---|---|
+| Halaman utama (Index) | https://yogyremasetyantoui.github.io/monitoring-pendakian/index.html |
+| Dashboard monitoring 2D | https://yogyremasetyantoui.github.io/monitoring-pendakian/dashboard_monitoring_2D.html |
+| Dashboard monitoring 3D | https://yogyremasetyantoui.github.io/monitoring-pendakian/dashboard_monitoring_3D.html |
+| Formulir pendaftaran pendakian | https://yogyremasetyantoui.github.io/monitoring-pendakian/form-pendaftaran-pendakian.html |
 
 ## Daftar Isi
 
+- [Alamat Aplikasi](#alamat-aplikasi)
 - [Posisi Digital Twin](#posisi-digital-twin)
 - [Fitur Utama](#fitur-utama)
 - [Infrastruktur yang Dibutuhkan](#infrastruktur-yang-dibutuhkan)
