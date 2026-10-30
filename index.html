@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10251f">
+  <meta name="description" content="Portal Digital Twin Pendakian Gunung Gede Pangrango Jalur Putri.">
+  <title>Digital Twin | Gunung Gede Pangrango – Jalur Putri</title>
+  <style>
+    :root {
+      --forest:#10251f; --forest-2:#17382d; --moss:#a8c49a;
+      --paper:#f3f5ef; --ink:#1c3028; --muted:#66766d;
+      --line:#dce4da; --white:#fff;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; font-family:Inter, "Segoe UI", Arial, sans-serif;
+      color:var(--ink); background:var(--paper);
+    }
+    a { color:inherit; text-decoration:none; }
+    .nav {
+      position:absolute; z-index:5; top:0; left:0; right:0;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:22px clamp(20px,6vw,86px); color:#fff;
+      border-bottom:1px solid rgba(255,255,255,.16);
+    }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.08em; }
+    .brand-mark {
+      width:42px; height:42px; display:grid; place-items:center;
+      border:1px solid rgba(255,255,255,.45); border-radius:13px;
+      color:#d7e8ce; font-size:22px;
+    }
+    .brand small { display:block; margin-top:4px; font-size:9px; letter-spacing:.2em; color:#c2d4c7; }
+    .nav-links { display:flex; gap:26px; align-items:center; font-size:13px; color:#e6eee8; }
+    .nav-links a:hover { color:#b9d5a9; }
+    .nav-cta { padding:11px 17px; border:1px solid rgba(255,255,255,.5); border-radius:999px; }
+    .hero {
+      min-height:690px; height:min(830px,94vh); position:relative; display:flex;
+      align-items:center; overflow:hidden; color:#fff;
+      background:
+        linear-gradient(90deg,rgba(8,22,18,.82) 0%,rgba(8,22,18,.55) 47%,rgba(8,22,18,.13) 100%),
+        linear-gradient(0deg,rgba(8,22,18,.55),transparent 50%),
+        url("assets/hero-gede.jpg") center 48%/cover no-repeat;
+    }
+    .hero-content { width:min(1180px,88%); margin:90px auto 30px; position:relative; z-index:1; }
+    .eyebrow { display:flex; align-items:center; gap:10px; text-transform:uppercase; letter-spacing:.22em; font-size:11px; font-weight:700; color:#c6dbbd; }
+    .eyebrow:before { content:""; width:34px; height:1px; background:#a8c49a; }
+    h1 { max-width:780px; margin:24px 0 16px; font-size:clamp(42px,7vw,82px); line-height:.99; letter-spacing:-.055em; }
+    h1 span { color:#c2d8b5; }
+    .hero p { max-width:590px; color:#e0e8e1; font-size:17px; line-height:1.75; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:14px 21px; border-radius:9px; font-size:13px; font-weight:750; transition:.2s; }
+    .btn-primary { background:#b7d0a8; color:#183629; }
+    .btn-primary:hover { background:#d0e2c5; transform:translateY(-2px); }
+    .btn-ghost { border:1px solid rgba(255,255,255,.55); color:white; background:rgba(255,255,255,.06); }
+    .btn-ghost:hover { background:rgba(255,255,255,.15); }
+    .hero-note { margin-top:65px; display:flex; gap:28px; flex-wrap:wrap; color:#d7e2d9; font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+    .hero-note span { display:flex; align-items:center; gap:8px; }
+    .hero-note i { width:6px; height:6px; border-radius:50%; background:#a8d18e; }
+    .section { width:min(1180px,88%); margin:auto; padding:92px 0; }
+    .section-head { display:flex; justify-content:space-between; align-items:end; gap:30px; margin-bottom:32px; }
+    .kicker { color:#68836d; text-transform:uppercase; letter-spacing:.2em; font-size:10px; font-weight:800; }
+    h2 { margin:10px 0 0; font-size:clamp(30px,4vw,44px); letter-spacing:-.04em; color:#18382c; }
+    .section-head p { max-width:390px; margin:0; color:var(--muted); line-height:1.7; font-size:14px; }
+    .service-grid { display:grid; grid-template-columns:1.12fr 1fr 1fr; gap:18px; }
+    .service {
+      background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden;
+      display:flex; flex-direction:column; min-height:440px; box-shadow:0 10px 30px rgba(25,54,39,.045);
+      transition:transform .25s, box-shadow .25s;
+    }
+    .service:hover { transform:translateY(-5px); box-shadow:0 18px 38px rgba(25,54,39,.11); }
+    .service-image { height:205px; position:relative; overflow:hidden; background:#d8e2d5; }
+    .service-image img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s; }
+    .service:hover .service-image img { transform:scale(1.045); }
+    .service:first-child .service-image img { object-position:center 38%; }
+    .service:nth-child(2) .service-image img { object-position:center; }
+    .service:nth-child(3) .service-image img { object-position:center; }
+    .number { position:absolute; top:14px; left:14px; color:white; background:rgba(13,35,27,.82); padding:7px 10px; border-radius:6px; font-size:10px; font-weight:800; letter-spacing:.12em; }
+    .service-body { padding:23px; display:flex; flex:1; flex-direction:column; }
+    .tag { font-size:10px; color:#6c8b6e; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    .service h3 { margin:11px 0 9px; font-size:22px; color:#1b382c; letter-spacing:-.025em; }
+    .service p { color:#6a786f; line-height:1.7; font-size:13px; margin:0 0 22px; }
+    .service-link { margin-top:auto; display:flex; align-items:center; justify-content:space-between; color:#28583d; font-size:13px; font-weight:800; padding-top:15px; border-top:1px solid #edf0eb; }
+    .service-link b { font-size:20px; font-weight:500; transition:transform .2s; }
+    .service-link:hover b { transform:translateX(5px); }
+    .about {
+      background:#e7ede4; border-top:1px solid #dbe5d8; border-bottom:1px solid #dbe5d8;
+    }
+    .about-inner { width:min(1180px,88%); margin:auto; padding:65px 0; display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; }
+    .about h2 { font-size:34px; }
+    .about p { color:#5e7064; line-height:1.85; font-size:14px; }
+    .about-image { height:300px; border-radius:14px; overflow:hidden; box-shadow:0 15px 35px rgba(20,48,33,.12); }
+    .about-image img { width:100%; height:100%; object-fit:cover; }
+    .footer { background:#10251f; color:#dce8de; padding:30px 6%; }
+    .footer-inner { width:min(1180px,100%); margin:auto; display:flex; justify-content:space-between; gap:20px; align-items:center; flex-wrap:wrap; }
+    .footer small { color:#9eb3a3; line-height:1.7; }
+    .footer a { color:#c6dbbd; font-size:12px; font-weight:700; }
+    @media(max-width:900px) {
+      .service-grid { grid-template-columns:1fr 1fr; }
+      .service:first-child { grid-column:span 2; }
+      .service:first-child .service-image { height:260px; }
+      .about-inner { gap:30px; }
+    }
+    @media(max-width:620px) {
+      .nav { padding:16px 6%; }
+      .nav-links a:not(.nav-cta) { display:none; }
+      .hero { min-height:720px; height:88vh; background-position:57% center; }
+      .hero-content { width:88%; margin-top:110px; }
+      .hero p { font-size:15px; }
+      .hero-note { margin-top:42px; gap:14px; }
+      .section { padding:65px 0; }
+      .section-head { display:block; }
+      .section-head p { margin-top:15px; }
+      .service-grid { grid-template-columns:1fr; }
+      .service:first-child { grid-column:auto; }
+      .service:first-child .service-image,.service-image { height:210px; }
+      .about-inner { grid-template-columns:1fr; padding:55px 0; }
+      .about-image { height:220px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Digital Twin Home">
+      <span class="brand-mark">⌁</span>
+      <span>GEDE PANGRANGO<small>DIGITAL TWIN SYSTEM</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Navigasi utama">
+      <a href="#layanan">Layanan</a>
+      <a href="#tentang">Tentang Sistem</a>
+      <a class="nav-cta" href="form-pendaftaran-pendakian.html">Pendaftaran ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">Taman Nasional Gunung Gede Pangrango</div>
+        <h1>One Mountain.<br><span>Three Perspectives.</span></h1>
+        <p>Platform Digital Twin Pendakian Gunung Gede Pangrango melalui Jalur Putri untuk menghubungkan pendaftaran pendaki, pemantauan operasional 2D, dan visualisasi spasial 3D dalam satu portal terintegrasi.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#layanan">Jelajahi Sistem <span>→</span></a>
+          <a class="btn btn-ghost" href="form-pendaftaran-pendakian.html">Daftar Pendakian ↗</a>
+        </div>
+        <div class="hero-note">
+          <span><i></i> Jalur Pendakian Putri</span>
+          <span><i></i> Monitoring 2D</span>
+          <span><i></i> Spatial Twin 3D</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="layanan">
+      <div class="section-head">
+        <div>
+          <div class="kicker">Integrated mountain platform</div>
+          <h2>Pilih Layanan</h2>
+        </div>
+        <p>Satu portal untuk tiga kebutuhan utama. Pilih layanan sesuai peran dan kebutuhan Anda.</p>
+      </div>
+
+      <div class="service-grid">
+        <article class="service">
+          <div class="service-image">
+            <img src="assets/pendaki-putri.jpg" alt="Pendaki sedang melakukan perjalanan di jalur hutan">
+            <span class="number">01 / REGISTRATION</span>
+          </div>
+          <div class="service-body">
+            <div class="tag">Pendaftaran pendakian</div>
+            <h3>Registrasi Pendaki</h3>
+            <p>Isi data pendaki individu maupun kelompok, identitas ketua dan anggota, serta tanggal rencana pendakian.</p>
+            <a class="service-link" href="form-pendaftaran-pendakian.html"><span>Buka Form Pendaftaran</span><b>↗</b></a>
+          </div>
+        </article>
+
+        <article class="service">
+          <div class="service-image">
+            <img src="assets/vegetasi-gede.jpg" alt="Vegetasi hutan pegunungan Gunung Gede Pangrango">
+            <span class="number">02 / OPERATIONS</span>
+          </div>
+          <div class="service-body">
+            <div class="tag">Operational dashboard</div>
+            <h3>Monitoring 2D</h3>
+            <p>Pantau daftar pendaki, status perjalanan, kondisi pos, kepadatan, serta informasi dan peringatan operasional.</p>
+            <a class="service-link" href="https://yogyremasetyantoui.github.io/monitoring-pendakian/dashboard_monitoring_2D.html"><span>Buka Dashboard 2D</span><b>↗</b></a>
+          </div>
+        </article>
+
+        <article class="service">
+          <div class="service-image">
+            <img src="assets/dashboard-3d.png" alt="Visualisasi medan 3D jalur pendakian dengan titik pos">
+            <span class="number">03 / SPATIAL TWIN</span>
+          </div>
+          <div class="service-body">
+            <div class="tag">3D spatial visualization</div>
+            <h3>Monitoring 3D</h3>
+            <p>Jelajahi representasi medan tiga dimensi untuk melihat posisi pendaki, persebaran aktivitas, kepadatan jalur, dan pos pendakian.</p>
+            <a class="service-link" href="https://yogyremasetyantoui.github.io/monitoring-pendakian/dashboard_monitoring_3D.html"><span>Buka Dashboard 3D</span><b>↗</b></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="about" id="tentang">
+      <div class="about-inner">
+        <div>
+          <div class="kicker">About the platform</div>
+          <h2>Satu Gunung, Terhubung dalam Satu Sistem.</h2>
+          <p>Portal ini menjadi halaman penghubung antara proses registrasi pendaki dan dua pendekatan pemantauan. Dashboard 2D menyajikan informasi operasional secara ringkas, sedangkan dashboard 3D memberikan perspektif spasial terhadap jalur dan medan pendakian.</p>
+          <p>Gunakan menu navigasi pada setiap halaman untuk kembali ke Home atau berpindah antar-dashboard.</p>
+        </div>
+        <div class="about-image">
+          <img src="assets/hero-gede.jpg" alt="Panorama pegunungan Gunung Gede Pangrango saat matahari terbit">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <strong>GEDE PANGRANGO DIGITAL TWIN</strong><br>
+        <small>Integrated Hiking Registration &amp; Monitoring Platform · Jalur Putri</small>
+      </div>
+      <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Kembali ke atas ↑</a>
+    </div>
+  </footer>
+</body>
+</html>
