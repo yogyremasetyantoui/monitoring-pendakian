@@ -6,7 +6,7 @@ Tujuannya: petugas melihat kondisi gunung seperti berdiri di semua pos sekaligus
 
 **Demo langsung:** https://yogyremasetyantoui.github.io/monitoring-pendakian/dashboard_monitoring_3D.html
 
-**Formulir pendaftaran + QR Code:** https://yogyremasetyantoui.github.io/pendakian-form/index.html
+**Formulir pendaftaran + QR Code:** https://yogyremasetyantoui.github.io/monitoring-pendakian/form-pendaftaran-pendakian.html
 
 ## Daftar Isi
 
@@ -42,7 +42,7 @@ Kondisi di lapangan masuk ke model, model menghasilkan keputusan (misalnya pos d
 
 ### 1. Pendaftaran terintegrasi QR Code
 
-Sistem punya [formulir pendaftaran sendiri](https://yogyremasetyantoui.github.io/pendakian-form/index.html) yang selain mencatat pendaki juga menghasilkan QR Code untuk scan di pos.
+Sistem punya [formulir pendaftaran sendiri](https://yogyremasetyantoui.github.io/monitoring-pendakian/form-pendaftaran-pendakian.html) yang selain mencatat pendaki juga menghasilkan QR Code untuk scan di pos.
 
 1. Pendaki atau ketua rombongan mengisi formulir.
 2. Formulir menghasilkan QR Code sebagai identitas selama pendakian.
