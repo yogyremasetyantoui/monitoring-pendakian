@@ -311,7 +311,7 @@
 
   <div class="controls">
     <div class="search-box">
-      <input type="text" id="searchBox" placeholder="🔍 Cari nama pendaki atau NIK...">
+      <input type="text" id="searchBox" placeholder="🔍 Cari nama pendaki atau kelompok...">
     </div>
     <select id="posFilter" class="pos-select" title="Filter berdasarkan pos terakhir"><option value="">Semua pos</option></select>
     <button class="filter-btn active" data-filter="all">Semua</button>
@@ -704,7 +704,7 @@
 
     function filteredData() {
       const q = $('searchBox').value.toLowerCase(), posSel = $('posFilter').value;
-      let data = allData.filter(r => r.hikername.toLowerCase().includes(q) || r.nik.toLowerCase().includes(q));
+      let data = allData.filter(r => r.hikername.toLowerCase().includes(q) || r.groupname.toLowerCase().includes(q));
       if (currentFilter === 'active') data = data.filter(r => ['CHECK-IN-NAIK','CHECK-IN-TURUN','REST-BREAK','CAMPING-OVERNIGHT'].includes(r.latestStatus));
       if (currentFilter === 'sos') data = data.filter(r => r.latestStatus === 'SOS-EMERGENCY');
       if (posSel) data = data.filter(r => { const lp = getLastPos(r); return lp && String(lp.pos) === posSel; });
