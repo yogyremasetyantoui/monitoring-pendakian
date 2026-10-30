@@ -1,7 +1,0 @@
-URL	Skenario	Hasil yang terlihat
-?demo1	Normal	47 pendaki naik, turun, istirahat, dan camping. Cuaca cerah, semua pos BUKA.
-?demo2	Ramai/padat	381 pendaki. Pos 2 sampai 6 HAMPIR PENUH, hujan sedang (waspada) di Buntut Lutung dan Lawang Sekateng, 7 pendaki terlambat.
-?demo3	Pos penuh	Legok Leunca penuh (31/30). Pendakian ditahan di Pos 1, dan 7 pendaki yang menuju ke sana tercatat sebagai pelanggar.
-?demo4	Hujan lebat	Hujan lebat di Buntut Lutung dan Lawang Sekateng. Pos 4 sampai 7 DITUTUP, Pos 1 Gerbang TAHAN NAIK, 16 pendaki menuju zona tutup.
-?demo5	SOS	Tiga pendaki SOS: dua di jalur (termasuk Tanah Merah–Pos 1, seperti di screenshot Anda) dan satu di Surya Kencana.
-?demo6	Krisis gabungan	Hujan lebat dan badai di Simpang Maleber dan Surya Kencana, Pos 6 sampai 9 DITUTUP, Legok Leunca penuh, 2 SOS, 31 pelanggar.
