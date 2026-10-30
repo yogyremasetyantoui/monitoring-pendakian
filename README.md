@@ -80,6 +80,9 @@ Hujan sedang memunculkan status waspada tetapi belum menutup pos. Garis hujan an
 | Hujan lebat | 10,1 – 20 mm/jam | Pos ditutup beserta pos di atas dan di bawahnya |
 | Badai / ekstrem | > 20 mm/jam | Sama dengan hujan lebat |
 
+Kelemahan:
+Keterbatasan Resolusi Grid Spasial: Jarak dari Basecamp Putri ke Alun-Alun Suryakencana hanya sekitar 6–7 kilometer secara horizontal. Karena jarak ini lebih kecil dari ukuran grid cuaca global WeatherAPI, sistem memetakan seluruh jalur tersebut ke dalam satu titik data cuaca yang sama. Pengabaian Faktor Mikroklimat & Elevasi: Model cuaca global kurang sensitif terhadap perubahan elevasi yang ekstrem dalam jarak pendek (orographic precipitation). API mengasumsikan kondisi awan dan potensi hujan di basecamp sama dengan di area atas, padahal secara riil, cuaca di gunung sangat dipengaruhi oleh ketinggian. Perlu Sensor aktif yang ditanam di tiap pos untuk mengetahui secara realtime lebih lanjutnya.
+
 ### 5. Buka-tutup jalur saat penuh
 
 Tiap pos punya batas kapasitas: 30 orang untuk pos jalur, 150 untuk Puncak, dan tanpa batas untuk Basecamp serta Surya Kencana. Pada 80% kapasitas status berubah menjadi hampir penuh. Saat penuh, pendakian ditahan di pos sebelumnya dan pendaki yang menuju pos penuh ditandai.
