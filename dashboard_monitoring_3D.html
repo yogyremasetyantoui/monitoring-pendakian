@@ -77,7 +77,7 @@ input[type=search]{width:100%;box-sizing:border-box;margin-top:10px;padding:7px 
   <div class="mut" style="display:flex;justify-content:space-between"><span>jalur/pos kosong</span><span>padat</span></div>
   <div class="mut" style="margin-top:6px">● pendaki naik &nbsp; ◆ pendaki turun &nbsp; 🔴 cincin merah = pendakian ditahan</div>
   <div class="mut" style="margin-top:6px">☀️ 0 · 🌦️ 0,1–5 · 🌧️ 5,1–10 · ⛈️ 10,1–20 · 🌪️ &gt;20 mm/jam. Garis hujan animasi di jalur = cuaca segmen (yang terburuk dari dua pos di ujungnya).</div>
-  <div class="mut" style="margin-top:8px">Kiri-drag: putar · Kanan-drag: geser · Scroll: zoom · Klik pendaki: detail.<br>Tambahkan <b>?demo</b> di URL untuk data contoh, <b>?lite</b> / <b>?full</b> untuk kualitas grafis.<br><span id="liteNote"></span><br>Elevasi: AWS Terrain Tiles · Citra: Esri World Imagery · Jalur: GPX Wikiloc.</div>
+  <div class="mut" style="margin-top:8px">Kiri-drag: putar · Kanan-drag: geser · Scroll: zoom · Klik pendaki: detail.<br>Demo skenario: <a href="?demo1">?demo1</a> normal · <a href="?demo2">2</a> ramai · <a href="?demo3">3</a> pos penuh · <a href="?demo4">4</a> hujan lebat · <a href="?demo5">5</a> SOS · <a href="?demo6">6</a> krisis (<a href="?demo">?demo</a> = acak).<br> <b>?lite</b> / <b>?full</b> untuk kualitas grafis.<br><span id="liteNote"></span><br>Elevasi: AWS Terrain Tiles · Citra: Esri World Imagery · Jalur: GPX Wikiloc.</div>
 </div>
 <div id="banner"></div>
 <div id="detail"></div>
@@ -213,7 +213,7 @@ const H = (x, z) => Hm(x / UPP, z / UPP) * S * EXAG;
 const elevAt = v => Math.round(Hm(v.x / UPP, v.z / UPP));
 
 // ====== DUNIA 3D ======
-const LABEL_LIFT = 40;   // tinggi label melayang di atas pos (unit dunia) — perbesar jika masih menutupi pendaki
+const LABEL_LIFT = 20;   // tinggi label melayang di atas pos (unit dunia) — perbesar jika masih menutupi pendaki
 let P = [], terrain = null, segCurves = [], segLen = [], segMeshes = [], posBars = [], posLabels = [];
 const sampleSeg = (k, u) => { const v = segCurves[k].getPointAt(clamp(u, 0, 1)); v.y = H(v.x, v.z) + 1.0; return v; };
 
@@ -303,7 +303,7 @@ async function loadImagery() {   // tekstur satelit; jika gagal tetap pakai warn
 function drawLabel(i) {
   const {cv, tex} = posLabels[i], x = cv.getContext('2d'), st = STAT && STAT.pos[i + 1], w = WX && WX[i + 1];
   const SS = st ? MC.STATUS[st.status] : MC.STATUS.BUKA, cap = POS[i].cap, occ = st ? st.occ : 0;
-  x.clearRect(0, 0, 320, 150); x.fillStyle = 'rgba(15,23,42,.9)'; x.fillRect(4, 4, 312, 142);
+  x.clearRect(0, 0, 320, 150); x.fillStyle = st && st.closed ? 'rgba(69,10,10,.94)' : 'rgba(15,23,42,.9)'; x.fillRect(4, 4, 312, 142);
   x.strokeStyle = SS.color; x.lineWidth = 6; x.strokeRect(5, 5, 310, 140); x.textAlign = 'center';
   x.fillStyle = '#e8edf5'; x.font = 'bold 28px Segoe UI, sans-serif'; x.fillText((i + 1) + '. ' + POS[i].n, 160, 38, 296);
   x.font = '23px Segoe UI, sans-serif';
@@ -357,7 +357,9 @@ const hg = new THREE.Group(); scene.add(hg);
 const HM = new Map();   // key -> mesh (posisi dianimasikan halus antar pembaruan)
 let ALL = [], LAST = [], LASTSC = Array(8).fill(0), beacons = [], selKey = null, selInfo = null;
 let WX = null, wxErr = '', STAT = null;
-const DEMO = QS.has('demo');
+const DEMO_N = (() => { for (const k of QS.keys()) { const m = /^demo(\d+)$/.exec(k); if (m) return +m[1]; } const v = +QS.get('demo'); return v > 0 ? v : 0; })();   // ?demo1 … ?demo6 atau ?demo=N
+const DEMO_SC = MC.DEMO_SCENARIOS.find(x => x.id === DEMO_N) || null;
+const DEMO = QS.has('demo') || DEMO_N > 0;
 const heat = (c, cap) => c === 0 ? new THREE.Color(0x4b6a88) : new THREE.Color().setHSL(.33 * (1 - Math.min(1, c / cap)), .85, .5);
 
 function analyze(r, now, n) {   // analisis dari modul inti + kunci unik
@@ -424,7 +426,7 @@ function render() {
 
 function paintStatus() {
   if (!STAT) return;
-  for (let i = 0; i < 9; i++) { drawLabel(i); rings[i].visible = STAT.pos[i + 1].hold; }
+  for (let i = 0; i < 9; i++) { drawLabel(i); rings[i].visible = STAT.pos[i + 1].hold || STAT.pos[i + 1].closed; }
   for (let k = 0; k < 8; k++) { const sw = MC.segmentWeather(WX, k); setRain(k, sw ? sw.cls.lv : 0); }
   const b = $('banner');
   if (STAT.anyHold) {
@@ -445,7 +447,7 @@ function paintStatus() {
   el.textContent = txt; el.className = 'mut' + (bad ? ' bad' : '');
 }
 async function refreshWeather() {
-  try { WX = DEMO ? MC.demoWeather() : await MC.fetchWeather(); wxErr = ''; } catch (e) { wxErr = e.message; }   // data lama tetap dipakai bila gagal
+  try { WX = DEMO ? MC.demoWeather(DEMO_SC && DEMO_SC.id) : await MC.fetchWeather(); wxErr = ''; } catch (e) { wxErr = e.message; }   // data lama tetap dipakai bila gagal
   render();
 }
 
@@ -485,6 +487,7 @@ function infoDetail(o) {
     const i = o.i, p = POS[i], st = STAT.pos[i + 1], SS = MC.STATUS[st.status], pct = st.cap ? Math.min(100, st.occ / st.cap * 100) : 0;
     h += `<h2>${i + 1}. ${esc(p.full)}</h2><div class="mut">${elevAt(P[i])} mdpl (DEM)</div>
       <div style="margin:6px 0"><b style="color:${SS.color}">${SS.icon} ${SS.label}</b></div>`;
+    st.closeReasons.forEach(x => h += `<div class="sos" style="background:#450a0a;border-color:#dc2626">🚫 DITUTUP — ${esc(x.text)}</div>`);
     st.holds.forEach(x => h += `<div class="sos" style="background:#3a1010;border-color:#ef4444">⛔ ${esc(x.text)}</div>`);
     if (st.zone) h += '<div class="mut">📍 Pos ini berada di ZONA HUJAN (hujan ≥ sedang)</div>';
     h += st.cap == null
@@ -522,7 +525,7 @@ function showDetail() {
 async function load() {
   let msg;
   try {
-    if (DEMO) { ALL = MC.demoHikers(); msg = '🧪 Mode DEMO (data contoh)'; }
+    if (DEMO) { ALL = MC.demoHikers(DEMO_SC && DEMO_SC.id); msg = DEMO_SC ? '🧪 DEMO ' + DEMO_SC.id + ' — ' + DEMO_SC.title + ': ' + DEMO_SC.desc : '🧪 Mode DEMO (data contoh acak)'; }
     else {
       const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 15000);
       const res = await fetch(APPS_SCRIPT_URL + '?dashboard=true', {signal:ctl.signal}); clearTimeout(to);
