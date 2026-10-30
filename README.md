@@ -196,4 +196,5 @@ Di `dashboard_monitoring_3D.html`, konstanta `LABEL_LIFT` (saat ini 20) mengatur
 
 - Elevasi medan: AWS Terrain Tiles
 - Citra: Esri World Imagery
-- Jalur: GPX Wikiloc
+- Jalur dan Pos: GPX
+- Cuaca: weatherapi
