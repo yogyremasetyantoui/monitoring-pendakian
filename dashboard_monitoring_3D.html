@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard 3D Monitoring Pendakian · Gunung Gede via Putri</title>
+<style>
+html,body{margin:0;height:100%;background:#0b1220;font-family:'Segoe UI',Tahoma,sans-serif;color:#e8edf5;overflow:hidden}
+#c{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+.panel{position:fixed;top:12px;left:12px;width:285px;max-height:calc(100% - 24px);overflow:auto;background:rgba(15,23,42,.88);border:1px solid #26344d;border-radius:12px;padding:14px;font-size:13px}
+.panel h1{font-size:16px;margin:0 0 4px}
+.panel h3{font-size:12px;margin:14px 0 6px;color:#8fa3c0;text-transform:uppercase;letter-spacing:.05em}
+.mut{color:#8fa3c0;font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stats div{background:#16223a;border-radius:8px;padding:8px;text-align:center}
+.stats b{display:block;font-size:20px}.stats span{font-size:10px;color:#8fa3c0}
+ol,ul{margin:0;padding-left:18px}li{margin:3px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+select,button,input[type=search]{background:#16223a;color:#e8edf5;border:1px solid #334a6b;border-radius:6px;padding:5px 8px;font-size:12px}
+input[type=search]{width:100%;box-sizing:border-box;margin-top:10px;padding:7px 9px}
+.qres{list-style:none;padding:0;margin:4px 0 0}
+.qres li{padding:4px 6px;border-radius:5px;cursor:pointer}.qres li:hover,#alerts li:hover{background:#1e2c47}
+#alerts{list-style:none;padding:0}#alerts li{cursor:pointer;padding:3px 4px;border-radius:5px}
+.bar{height:8px;border-radius:4px;background:linear-gradient(90deg,#4b6a88,#22c55e,#eab308,#ef4444);margin-top:4px}
+#tip{position:fixed;pointer-events:none;display:none;background:#0f172a;border:1px solid #334a6b;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.5;z-index:5}
+#mode{position:fixed;top:12px;right:12px;display:inline-flex;gap:4px;background:rgba(15,23,42,.88);border:1px solid #26344d;border-radius:10px;padding:4px;z-index:6}
+#mode a,#mode span{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;color:#c8d4e6}
+#mode span{background:#3b82f6;color:#fff}
+#mode a:hover{background:#1e2c47}
+#detail{position:fixed;top:60px;right:12px;width:285px;max-height:calc(100% - 130px);overflow:auto;background:rgba(15,23,42,.93);border:1px solid #26344d;border-radius:12px;padding:12px;font-size:12px;line-height:1.5;display:none;z-index:6}
+#detail h2{font-size:15px;margin:0 0 2px}
+#detail table{width:100%;border-collapse:collapse;margin-top:6px}#detail td{padding:2px 0;border-top:1px solid #1e2c47}
+#detail .x{float:right;cursor:pointer}
+#detail a{color:#7cc4ff}
+.sos{background:#3a1030;border:1px solid #e879f9;border-radius:8px;padding:6px 8px;margin:6px 0}
+#geo{position:fixed;right:12px;bottom:12px;background:rgba(15,23,42,.85);border:1px solid #26344d;border-radius:8px;padding:6px 10px;font-size:11px;color:#8fa3c0;font-family:Consolas,monospace}
+#banner{position:fixed;top:12px;left:50%;transform:translateX(-50%);max-width:min(560px,calc(100% - 640px));min-width:260px;background:rgba(127,29,29,.94);border:2px solid #ef4444;border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.45;z-index:7;display:none}
+#banner .viol{margin-top:5px;padding-top:5px;border-top:1px dashed #fca5a5;font-weight:700}
+.poslist{list-style:none;padding:0;margin:4px 0 0}.poslist li{padding:3px 4px;border-radius:5px;cursor:pointer;font-size:12px}.poslist li:hover{background:#1e2c47}
+.wxbar{height:7px;background:#1e2c47;border-radius:4px;overflow:hidden;margin:3px 0 6px}.wxbar div{height:100%}
+.bad{color:#fca5a5}
+@media (max-width:1100px){#banner{top:auto;bottom:48px;left:50%;max-width:calc(100% - 24px)}}
+@media (max-width:700px){.panel{width:230px;font-size:12px}#detail{width:230px}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<nav id="mode"><a href="dashboard_monitoring_2D.html">📋 2D Tabel</a><span>🏔️ 3D Peta</span></nav>
+<div class="panel">
+  <h1>🏔️ Gunung Gede · via Putri</h1>
+  <div class="mut" id="src">Memuat peta…</div>
+  <input type="search" id="q" placeholder="🔍 Cari nama / NIK…" autocomplete="off">
+  <ul class="qres" id="qres"></ul>
+  <div class="stats">
+    <div><b id="sTot">0</b><span>di jalur</span></div>
+    <div><b id="sPos">0</b><span>di pos</span></div>
+    <div><b id="sAl">0</b><span>alert</span></div>
+  </div>
+  <h3>Status pos &amp; cuaca</h3>
+  <div class="mut" id="wxInfo">Memuat cuaca…</div>
+  <ul class="poslist" id="posList"></ul>
+  <h3>Pos terpadat</h3><ol id="topPos"></ol>
+  <h3>Segmen jalur terpadat</h3><ol id="topSeg"></ol>
+  <h3>Perlu perhatian</h3><ul id="alerts"></ul>
+  <div class="row">
+    <label><input type="checkbox" id="tgH" checked> Pendaki</label>
+    <label><input type="checkbox" id="tgL" checked> Label</label>
+    <label><input type="checkbox" id="tgR"> Putar</label>
+    <label><input type="checkbox" id="tgN"> Mode malam</label>
+  </div>
+  <div class="row">
+    <select id="focus"></select>
+    <button id="reset">Reset kamera</button>
+  </div>
+  <h3>Legenda</h3>
+  <div class="bar"></div>
+  <div class="mut" style="display:flex;justify-content:space-between"><span>jalur/pos kosong</span><span>padat</span></div>
+  <div class="mut" style="margin-top:6px">● pendaki naik &nbsp; ◆ pendaki turun &nbsp; 🔴 cincin merah = pendakian ditahan</div>
+  <div class="mut" style="margin-top:6px">☀️ 0 · 🌦️ 0,1–5 · 🌧️ 5,1–10 · ⛈️ 10,1–20 · 🌪️ &gt;20 mm/jam. Garis hujan animasi di jalur = cuaca segmen (yang terburuk dari dua pos di ujungnya).</div>
+  <div class="mut" style="margin-top:8px">Kiri-drag: putar · Kanan-drag: geser · Scroll: zoom · Klik pendaki: detail.<br>Tambahkan <b>?demo</b> di URL untuk data contoh, <b>?lite</b> / <b>?full</b> untuk kualitas grafis.<br><span id="liteNote"></span><br>Elevasi: AWS Terrain Tiles · Citra: Esri World Imagery · Jalur: GPX Wikiloc.</div>
+</div>
+<div id="banner"></div>
+<div id="detail"></div>
+<div id="tip"></div>
+<div id="geo">Arahkan kursor ke peta untuk melihat koordinat</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="monitoring_core.js"></script>
+<script>
+// ====== KONFIGURASI ======
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKgkvB9lvlKBI_SXjiGaLGpCIUijmmXKprlMdn04k6GOkLsa1BvUJlAqyfRlX127PnvQ/exec';
+
+// Pos, segmen, kapasitas & aturan cuaca: lihat monitoring_core.js (satu sumber untuk 2D & 3D)
+const POS = MC.POS, SEG = MC.SEG;
+
+// Jejak jalur naik (Basecamp → Puncak) dari file GPX [lat, lon]
+const TRACK = [
+  [-6.755439,107.010236],[-6.756243,107.009343],[-6.757569,107.008575],[-6.757726,107.008174],[-6.760549,107.005693],[-6.760472,107.005593],
+  [-6.760658,107.005718],[-6.761226,107.005470],[-6.762116,107.005443],[-6.763715,107.003679],[-6.764162,107.003559],[-6.764494,107.004179],
+  [-6.764756,107.004227],[-6.765412,107.003426],[-6.766143,107.003410],[-6.766512,107.003201],[-6.766657,107.003040],[-6.766530,107.002824],
+  [-6.766781,107.002665],[-6.766710,107.002853],[-6.766760,107.002456],[-6.766640,107.002146],[-6.767686,107.001313],[-6.767602,107.001404],
+  [-6.767588,107.001297],[-6.767918,107.001198],[-6.768167,107.000786],[-6.768530,107.000724],[-6.768707,107.000532],[-6.768994,107.000075],
+  [-6.768917,107.000114],[-6.769164,106.999326],[-6.769918,106.998634],[-6.769927,106.998729],[-6.769953,106.998329],[-6.770256,106.998059],
+  [-6.770603,106.997042],[-6.771666,106.996556],[-6.772146,106.996033],[-6.772096,106.995919],[-6.772083,106.996076],[-6.772191,106.996147],
+  [-6.772136,106.996021],[-6.772225,106.996040],[-6.772193,106.996247],[-6.772101,106.996060],[-6.772191,106.996036],[-6.772059,106.995990],
+  [-6.772111,106.996084],[-6.772128,106.995907],[-6.772082,106.996100],[-6.772107,106.995973],[-6.772205,106.996141],[-6.772160,106.995960],
+  [-6.772192,106.996171],[-6.772241,106.996067],[-6.772088,106.996045],[-6.772135,106.996119],[-6.772096,106.995985],[-6.772219,106.995954],
+  [-6.772136,106.996117],[-6.771989,106.996042],[-6.772105,106.995845],[-6.772622,106.995515],[-6.772876,106.995166],[-6.772746,106.995235],
+  [-6.773067,106.995173],[-6.773706,106.994326],[-6.773792,106.994378],[-6.774933,106.993536],[-6.774982,106.993654],[-6.774904,106.993577],
+  [-6.774998,106.993469],[-6.775592,106.993427],[-6.775656,106.993325],[-6.775686,106.993413],[-6.776227,106.993201],[-6.776192,106.993361],
+  [-6.776148,106.993096],[-6.776174,106.993333],[-6.776155,106.993179],[-6.776086,106.993313],[-6.776130,106.993201],[-6.776214,106.993273],
+  [-6.776125,106.993327],[-6.776307,106.993276],[-6.776144,106.993238],[-6.776182,106.993149],[-6.776047,106.993235],[-6.776190,106.993100],
+  [-6.776083,106.993060],[-6.776067,106.993340],[-6.775995,106.993207],[-6.776211,106.993334],[-6.776132,106.993305],[-6.776556,106.993015],
+  [-6.776859,106.993103],[-6.777247,106.992956],[-6.777335,106.993047],[-6.777874,106.992694],[-6.778045,106.992795],[-6.778244,106.992661],
+  [-6.778507,106.992715],[-6.778557,106.992501],[-6.778715,106.992438],[-6.778864,106.992597],[-6.778843,106.992431],[-6.779213,106.992385],
+  [-6.779296,106.992144],[-6.779171,106.992162],[-6.779351,106.992159],[-6.779155,106.992119],[-6.779877,106.992211],[-6.779823,106.991869],
+  [-6.780332,106.992019],[-6.780460,106.991758],[-6.780569,106.991828],[-6.780710,106.991691],[-6.780650,106.991797],[-6.780956,106.991834],
+  [-6.780951,106.992006],[-6.780944,106.991862],[-6.781116,106.991797],[-6.781357,106.991944],[-6.781584,106.991892],[-6.781460,106.992023],
+  [-6.781845,106.992223],[-6.782092,106.992041],[-6.782152,106.992119],[-6.782009,106.992123],[-6.782167,106.992121],[-6.781984,106.992102],
+  [-6.782276,106.992246],[-6.781991,106.991976],[-6.781971,106.992202],[-6.782164,106.992380],[-6.781911,106.991985],[-6.782216,106.992175],
+  [-6.781967,106.992441],[-6.781836,106.992136],[-6.782043,106.992193],[-6.782208,106.991856],[-6.782461,106.991817],[-6.782771,106.991543],
+  [-6.783512,106.991263],[-6.784326,106.991495],[-6.784720,106.991108],[-6.784911,106.991328],[-6.785311,106.991063],[-6.785543,106.991124],
+  [-6.786122,106.991872],[-6.787231,106.992787],[-6.786854,106.992551],[-6.786936,106.992434],[-6.786824,106.992562],[-6.786921,106.992527],
+  [-6.786859,106.992437],[-6.786959,106.992644],[-6.787628,106.992880],[-6.789482,106.993131],[-6.789895,106.993110],[-6.791379,106.992515],
+  [-6.792285,106.991869],[-6.793279,106.990950],[-6.794426,106.989403],[-6.795095,106.987449],[-6.795456,106.985792],[-6.795176,106.985442],
+  [-6.794995,106.985333],[-6.794881,106.985402],[-6.795154,106.985207],[-6.795016,106.985461],[-6.795230,106.985215],[-6.795389,106.984667],
+  [-6.795234,106.984459],[-6.794136,106.984326],[-6.793460,106.983926],[-6.793018,106.984030],[-6.792763,106.983901],[-6.792614,106.984046],
+  [-6.792349,106.983875],[-6.791403,106.983838],[-6.791088,106.983606],[-6.790771,106.983627],[-6.790110,106.983316],[-6.789881,106.983081],
+  [-6.789932,106.982875],[-6.789871,106.983108],[-6.789909,106.982853],[-6.789851,106.983247],[-6.789945,106.983054]
+];
+
+const CAP_POS = 10;   // jumlah orang di pos yang dianggap "sangat padat"
+const CAP_SEG = 8;    // jumlah orang di segmen jalur yang dianggap "sangat padat"
+const S = 0.02, EXAG = 1.5;   // 1 unit = 50 m, ketinggian dilebihkan 1.5x
+const Z = 13, TS = 256, PAD = 0.022;
+
+// Mode hemat untuk HP / perangkat lemah (paksa dengan ?lite atau ?full)
+const QS = new URLSearchParams(location.search);
+const LITE = QS.has('lite') || (!QS.has('full') && (matchMedia('(pointer:coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4));
+const ZI = LITE ? 13 : 14;   // zoom citra satelit
+
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hash = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) | 0; return Math.abs(h); };
+const ts = v => { if (!v) return null; const t = +new Date(v); return isNaN(t) ? null : t; };
+const fmt = v => { const t = ts(v); return t === null ? '-' : new Date(t).toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}); };
+window.addEventListener('error', e => { $('src').textContent = '⚠️ Error: ' + e.message; });
+$('liteNote').textContent = LITE ? 'Mode hemat aktif (resolusi medan & citra dikurangi).' : '';
+
+// ====== PROYEKSI (Web Mercator, pixel pada zoom Z) ======
+const NPX = 2 ** Z * TS;
+const mx = lon => (lon + 180) / 360 * NPX;
+const my = lat => { const r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * NPX; };
+const lons = POS.map(p => p.lon).concat(TRACK.map(t => t[1])), lats = POS.map(p => p.lat).concat(TRACK.map(t => t[0]));
+const tx0 = Math.floor(mx(Math.min(...lons) - PAD) / TS), tx1 = Math.floor(mx(Math.max(...lons) + PAD) / TS);
+const ty0 = Math.floor(my(Math.max(...lats) + PAD) / TS), ty1 = Math.floor(my(Math.min(...lats) - PAD) / TS);
+const W = (tx1 - tx0 + 1) * TS, HH = (ty1 - ty0 + 1) * TS, px0 = tx0 * TS, py0 = ty0 * TS;
+const latC = (Math.min(...lats) + Math.max(...lats)) / 2;
+const MPP = 156543.03392 * Math.cos(latC * Math.PI / 180) / 2 ** Z;   // meter per pixel
+const UPP = MPP * S;                                                  // unit dunia per pixel
+const toWorld = (lat, lon) => ({x:(mx(lon) - px0) * UPP, z:(my(lat) - py0) * UPP});
+function toLatLon(x, z) {
+  const X = x / UPP + px0, Y = z / UPP + py0, n = Math.PI - 2 * Math.PI * Y / NPX;
+  return {lat:Math.atan(Math.sinh(n)) * 180 / Math.PI, lon:X / NPX * 360 - 180};
+}
+
+// ====== SCENE & KAMERA ======
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:!LITE});
+renderer.setPixelRatio(LITE ? 1 : Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1220);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.5, 3000);
+const hemi = new THREE.HemisphereLight(0xdbe8ff, 0x445544, 1.0); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(-120, 200, 150); scene.add(sun);
+
+const cam = {t:new THREE.Vector3(), th:.35, ph:1.0, r:150};
+function updCam() {
+  const s = Math.sin(cam.ph);
+  camera.position.set(cam.t.x + cam.r * s * Math.sin(cam.th), cam.t.y + cam.r * Math.cos(cam.ph), cam.t.z + cam.r * s * Math.cos(cam.th));
+  camera.lookAt(cam.t);
+}
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+// ====== DEM ======
+let DEM = null, demReal = true;
+const img = u => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => rej(new Error('gagal: ' + u)); i.src = u; });
+async function loadDEM() {
+  const c = document.createElement('canvas'); c.width = W; c.height = HH; const x = c.getContext('2d'), jobs = [];
+  for (let tx = tx0; tx <= tx1; tx++) for (let ty = ty0; ty <= ty1; ty++)
+    jobs.push(img(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${Z}/${tx}/${ty}.png`).then(i => x.drawImage(i, (tx - tx0) * TS, (ty - ty0) * TS)));
+  await Promise.all(jobs);
+  const d = x.getImageData(0, 0, W, HH).data, e = new Float32Array(W * HH);
+  for (let i = 0; i < e.length; i++) e[i] = d[i * 4] * 256 + d[i * 4 + 1] + d[i * 4 + 2] / 256 - 32768;
+  return e;
+}
+function synthDEM() {   // cadangan bila data elevasi tak bisa diunduh
+  const e = new Float32Array(W * HH), pts = POS.map(p => ({x:mx(p.lon) - px0, y:my(p.lat) - py0, a:p.alt}));
+  for (let y = 0; y < HH; y++) for (let x = 0; x < W; x++) {
+    let h = 700; for (const p of pts) h = Math.max(h, p.a * Math.exp(-Math.pow(Math.hypot(x - p.x, y - p.y) * MPP / 1800, 2)));
+    e[y * W + x] = h;
+  }
+  return e;
+}
+function Hm(px, py) {   // elevasi (meter) di koordinat pixel DEM
+  px = clamp(px, 0, W - 1.001); py = clamp(py, 0, HH - 1.001);
+  const x0 = px | 0, y0 = py | 0, fx = px - x0, fy = py - y0, i = y0 * W + x0;
+  return (DEM[i] * (1 - fx) + DEM[i + 1] * fx) * (1 - fy) + (DEM[i + W] * (1 - fx) + DEM[i + W + 1] * fx) * fy;
+}
+const H = (x, z) => Hm(x / UPP, z / UPP) * S * EXAG;
+const elevAt = v => Math.round(Hm(v.x / UPP, v.z / UPP));
+
+// ====== DUNIA 3D ======
+let P = [], terrain = null, segCurves = [], segLen = [], segMeshes = [], posBars = [], posLabels = [];
+const sampleSeg = (k, u) => { const v = segCurves[k].getPointAt(clamp(u, 0, 1)); v.y = H(v.x, v.z) + 1.0; return v; };
+
+function buildWorld() {
+  // 1) pos dikunci pada titik terdekat di jejak GPX (urut maju sepanjang jalur)
+  const TW = TRACK.map(t => toWorld(t[0], t[1])), idxs = [];
+  let prev = 0;
+  POS.forEach((p, k) => {
+    const w = toWorld(p.lat, p.lon); let b = prev, bd = 1e18;
+    for (let i = prev; i < TW.length; i++) { const d = (TW[i].x - w.x) ** 2 + (TW[i].z - w.z) ** 2; if (d < bd) { bd = d; b = i; } }
+    if (k > 0 && b <= idxs[k - 1]) b = Math.min(idxs[k - 1] + 1, TW.length - 1);
+    idxs.push(b); prev = b;
+  });
+  P = idxs.map(i => new THREE.Vector3(TW[i].x, H(TW[i].x, TW[i].z) + 0.6, TW[i].z));
+  console.table(POS.map((p, i) => { const ll = toLatLon(P[i].x, P[i].z); return {pos:p.n, altDEM:elevAt(P[i]), lat:ll.lat.toFixed(5), lon:ll.lon.toFixed(5)}; }));
+
+  // 2) terrain
+  const N = LITE ? 110 : 220, vc = (N + 1) * (N + 1), pos = new Float32Array(vc * 3), uv = new Float32Array(vc * 2), col = new Float32Array(vc * 3);
+  let hmin = 1e9, hmax = -1e9; for (let i = 0; i < DEM.length; i += 7) { hmin = Math.min(hmin, DEM[i]); hmax = Math.max(hmax, DEM[i]); }
+  const cL = new THREE.Color(0x2d5a3a), cM = new THREE.Color(0x7a6a4a), cH = new THREE.Color(0xd0d3da), c = new THREE.Color();
+  for (let iy = 0, k = 0; iy <= N; iy++) for (let ix = 0; ix <= N; ix++, k++) {
+    const x = ix / N * W * UPP, z = iy / N * HH * UPP, hm = Hm(x / UPP, z / UPP);
+    pos.set([x, hm * S * EXAG, z], k * 3); uv.set([ix / N, 1 - iy / N], k * 2);
+    const t = clamp((hm - hmin) / (hmax - hmin), 0, 1);
+    c.copy(t < .55 ? cL.clone().lerp(cM, t / .55) : cM.clone().lerp(cH, (t - .55) / .45)); col.set([c.r, c.g, c.b], k * 3);
+  }
+  const idx = []; for (let iy = 0; iy < N; iy++) for (let ix = 0; ix < N; ix++) { const a = iy * (N + 1) + ix, b = a + 1, d = a + N + 1, e = d + 1; idx.push(a, d, b, b, d, e); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  terrain = new THREE.Mesh(g, new THREE.MeshStandardMaterial({vertexColors:true, roughness:1}));
+  scene.add(terrain);
+
+  // 3) jalur sebenarnya dari GPX, dibagi 8 segmen antar pos, menempel di medan, diwarnai kepadatan
+  for (let k = 0; k < 8; k++) {
+    let pts = TW.slice(idxs[k], idxs[k + 1] + 1).map(v => new THREE.Vector3(v.x, 0, v.z));
+    if (pts.length < 2) pts = [new THREE.Vector3(P[k].x, 0, P[k].z), new THREE.Vector3(P[k + 1].x, 0, P[k + 1].z)];
+    const cv = new THREE.CatmullRomCurve3(pts, false, 'centripetal'); segCurves.push(cv); segLen.push(cv.getLength() / S);
+    const n = Math.max(24, Math.ceil(cv.getLength() / 0.6)), dp = cv.getSpacedPoints(n).map(v => { v.y = H(v.x, v.z) + 1.0; return v; });
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(dp), n * 2, 0.5, 8),
+      new THREE.MeshStandardMaterial({color:0x4b6a88, emissive:0x4b6a88, emissiveIntensity:.6}));
+    scene.add(m); segMeshes.push(m);
+  }
+
+  // 4) pos: batang kepadatan + label
+  const barGeo = new THREE.CylinderGeometry(2.2, 2.2, 1, 20).translate(0, .5, 0);
+  POS.forEach((p, i) => {
+    const bar = new THREE.Mesh(barGeo, new THREE.MeshStandardMaterial({color:0x4b6a88, transparent:true, opacity:.85}));
+    bar.position.copy(P[i]); scene.add(bar); posBars.push(bar);
+    const cv = document.createElement('canvas'); cv.width = 320; cv.height = 150;
+    const tex = new THREE.CanvasTexture(cv);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, depthTest:false, transparent:true}));
+    sp.scale.set(22, 10.3, 1); sp.renderOrder = 10; scene.add(sp); posLabels.push({sp, cv, tex});
+    const ring = new THREE.Mesh(new THREE.RingGeometry(5.2, 6.6, 40).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({color:0xef4444, transparent:true, opacity:.7, side:THREE.DoubleSide}));
+    ring.position.set(P[i].x, P[i].y + .8, P[i].z); ring.visible = false; scene.add(ring); rings.push(ring);
+    drawLabel(i);
+  });
+  buildRain();
+
+  // 5) kamera awal
+  const box = new THREE.Box3().setFromPoints(P), ctr = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3());
+  cam.t.copy(ctr); cam.r = Math.max(sz.x, sz.z, 40) * 1.5; cam.home = {t:ctr.clone(), r:cam.r, th:cam.th, ph:cam.ph};
+  updCam();
+}
+
+async function loadImagery() {   // tekstur satelit; jika gagal tetap pakai warna ketinggian
+  try {
+    const f = 2 ** (ZI - Z), c = document.createElement('canvas'); c.width = W * f; c.height = HH * f; const x = c.getContext('2d'), jobs = [];
+    for (let tx = tx0 * f; tx <= tx1 * f + f - 1; tx++) for (let ty = ty0 * f; ty <= ty1 * f + f - 1; ty++)
+      jobs.push(img(`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${ZI}/${ty}/${tx}`)
+        .then(i => x.drawImage(i, (tx - tx0 * f) * TS, (ty - ty0 * f) * TS)));
+    await Promise.all(jobs);
+    const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding; tex.minFilter = THREE.LinearFilter;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    terrain.material.vertexColors = false; terrain.material.map = tex; terrain.material.color.set(0xffffff); terrain.material.needsUpdate = true;
+  } catch (e) { console.warn('Citra satelit tidak termuat, memakai warna ketinggian', e); }
+}
+
+function drawLabel(i) {
+  const {cv, tex} = posLabels[i], x = cv.getContext('2d'), st = STAT && STAT.pos[i + 1], w = WX && WX[i + 1];
+  const SS = st ? MC.STATUS[st.status] : MC.STATUS.BUKA, cap = POS[i].cap, occ = st ? st.occ : 0;
+  x.clearRect(0, 0, 320, 150); x.fillStyle = 'rgba(15,23,42,.9)'; x.fillRect(4, 4, 312, 142);
+  x.strokeStyle = SS.color; x.lineWidth = 6; x.strokeRect(5, 5, 310, 140); x.textAlign = 'center';
+  x.fillStyle = '#e8edf5'; x.font = 'bold 28px Segoe UI, sans-serif'; x.fillText((i + 1) + '. ' + POS[i].n, 160, 38, 296);
+  x.font = '23px Segoe UI, sans-serif';
+  if (w) { x.fillStyle = w.cls.color; x.fillText(w.cls.icon + ' ' + w.mm.toFixed(1) + ' mm · ' + w.cls.name, 160, 73, 296); }
+  else { x.fillStyle = '#8fa3c0'; x.fillText('☁️ cuaca n/a', 160, 73); }
+  x.fillStyle = '#e8edf5'; x.fillText(cap == null ? '👥 ' + occ : '👥 ' + occ + '/' + cap, 160, 106);
+  x.fillStyle = SS.color; x.font = 'bold 20px Segoe UI, sans-serif'; x.fillText(SS.icon + ' ' + SS.label, 160, 136, 296);
+  tex.needsUpdate = true;
+}
+
+// ====== HUJAN: garis jatuh animasi di atas segmen ======
+const rain = [], rings = [], RAIN_N = [0, 45, 100, 180, 280], RAIN_TOP = 16;
+function buildRain() {
+  const maxN = Math.round(RAIN_N[4] * (LITE ? .5 : 1));
+  for (let k = 0; k < 8; k++) {
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxN * 6), 3)); geo.setDrawRange(0, 0);
+    const mat = new THREE.LineBasicMaterial({color:0xa5c8ff, transparent:true, opacity:.5});
+    const lines = new THREE.LineSegments(geo, mat); lines.frustumCulled = false; lines.visible = false; scene.add(lines);
+    const drops = Array.from({length:maxN}, () => { const v = sampleSeg(k, Math.random()), x = v.x + (Math.random() - .5) * 12, z = v.z + (Math.random() - .5) * 12, g = H(x, z);
+      return {x, z, g, y:g + Math.random() * RAIN_TOP, sp:.28 + Math.random() * .3}; });
+    rain.push({lines, mat, drops, n:0, lv:0, maxN});
+  }
+}
+function setRain(k, lv) {
+  const r = rain[k]; if (!r) return;
+  r.lv = lv; r.n = lv ? Math.min(r.maxN, Math.round(RAIN_N[lv] * (LITE ? .5 : 1))) : 0;
+  r.lines.visible = r.n > 0; r.lines.geometry.setDrawRange(0, r.n * 2);
+  r.mat.color.set(lv >= 4 ? 0xe2e8f0 : lv === 3 ? 0x93b4e8 : 0xa5c8ff); r.mat.opacity = [0, .4, .5, .62, .75][lv];
+}
+function stepRain(dt) {
+  rain.forEach(r => {
+    if (!r.n) return; const a = r.lines.geometry.attributes.position.array, len = 1.1 + r.lv * .45;
+    for (let i = 0; i < r.n; i++) {
+      const d = r.drops[i]; d.y -= d.sp * dt * (1 + r.lv * .25); if (d.y < d.g) d.y = d.g + RAIN_TOP;
+      const o = i * 6; a[o] = d.x; a[o + 1] = d.y; a[o + 2] = d.z; a[o + 3] = d.x; a[o + 4] = d.y + len; a[o + 5] = d.z;
+    }
+    r.lines.geometry.attributes.position.needsUpdate = true;
+  });
+}
+
+// ====== LOGIKA PENDAKI ======
+const LV_NAME = ['Normal', 'Waspada', 'Siaga', 'Awas', 'SOS'];
+const LV_COL = [0x38bdf8, 0xfacc15, 0xfb923c, 0xef4444, 0xe879f9];
+const MAT = LV_COL.map(c => new THREE.MeshStandardMaterial({color:c, emissive:c, emissiveIntensity:.5}));
+const DIM = new THREE.MeshStandardMaterial({color:0x64748b, transparent:true, opacity:.22});
+const BEACON_MAT = new THREE.MeshBasicMaterial({color:0xe879f9, transparent:true, opacity:.6});
+const sphereGeo = new THREE.SphereGeometry(.9, 14, 14);          // naik
+const diamondGeo = new THREE.OctahedronGeometry(1.25);            // turun
+const beaconGeo = new THREE.CylinderGeometry(.35, .35, 26, 8);
+const hg = new THREE.Group(); scene.add(hg);
+const HM = new Map();   // key -> mesh (posisi dianimasikan halus antar pembaruan)
+let ALL = [], LAST = [], LASTSC = Array(8).fill(0), beacons = [], selKey = null, selInfo = null;
+let WX = null, wxErr = '', STAT = null;
+const DEMO = QS.has('demo');
+const heat = (c, cap) => c === 0 ? new THREE.Color(0x4b6a88) : new THREE.Color().setHSL(.33 * (1 - Math.min(1, c / cap)), .85, .5);
+
+function analyze(r, now, n) {   // analisis dari modul inti + kunci unik
+  const a = MC.analyzeHiker(r, now); if (!a) return null;
+  a.key = (r.uniqueid || r.nik || r.hikername) + '#' + (r.uniqueid || r.nik ? '' : n); return a;
+}
+
+function render() {
+  if (!segCurves.length) return;
+  const now = Date.now(), A = ALL.map((r, n) => analyze(r, now, n)).filter(Boolean); LAST = A;
+  const pc = Array(9).fill(0), sc = Array(8).fill(0);
+  A.forEach(a => a.atPos ? pc[a.pos - 1]++ : sc[a.seg]++);
+  LASTSC = sc; STAT = MC.computeStatus(A, WX);
+
+  const ring = Array(9).fill(0), seen = new Set(); beacons = [];
+  A.forEach(a => {
+    let p;
+    if (a.atPos) {
+      const i = ring[a.pos - 1]++, ang = i * 2.399, rad = 4.2 + Math.sqrt(i) * 1.7;
+      const x = P[a.pos - 1].x + Math.cos(ang) * rad, z = P[a.pos - 1].z + Math.sin(ang) * rad;
+      p = new THREE.Vector3(x, H(x, z) + 1.2, z);
+    } else {
+      const h = hash(a.key);
+      p = sampleSeg(a.seg, a.dir > 0 ? a.t : 1 - a.t);
+      p.x += (h % 7 - 3) * .3; p.z += ((h >> 3) % 7 - 3) * .3; p.y += .9 + ((h >> 6) % 3) * .4;
+    }
+    seen.add(a.key);
+    let m = HM.get(a.key);
+    if (!m) { m = new THREE.Mesh(a.dir < 0 ? diamondGeo : sphereGeo, MAT[a.lvl]); m.position.copy(p); hg.add(m); HM.set(a.key, m); }
+    else if (m.userData.dir !== a.dir) m.geometry = a.dir < 0 ? diamondGeo : sphereGeo;
+    a.target = p; m.userData = a;
+  });
+  HM.forEach((m, k) => { if (!seen.has(k)) { hg.remove(m); HM.delete(k); if (k === selKey) selKey = null; } });
+  // tiang cahaya SOS dipasang ulang tiap render (anak dari bola pendaki, ikut bergerak)
+  HM.forEach(m => { while (m.children.length) m.remove(m.children[0]); });
+  A.forEach(a => { if (a.lvl === 4) { const b = new THREE.Mesh(beaconGeo, BEACON_MAT); b.position.y = 13; HM.get(a.key).add(b); beacons.push(b); } });
+
+  segMeshes.forEach((m, k) => { const c = heat(sc[k], CAP_SEG); m.material.color.copy(c); m.material.emissive.copy(c); });
+  posBars.forEach((b, i) => {
+    const c = heat(pc[i], CAP_POS), h = .6 + pc[i] * 1.0;
+    b.scale.y = h; b.material.color.copy(c);
+    posLabels[i].sp.position.set(P[i].x, P[i].y + h + 6, P[i].z);
+  });
+
+  const top = (arr, name) => arr.map((c, i) => ({c, n:name(i)})).filter(o => o.c > 0).sort((a, b) => b.c - a.c).slice(0, 3)
+    .map(o => `<li>${esc(o.n)} — <b>${o.c}</b> orang</li>`).join('') || '<li class="mut">belum ada</li>';
+  $('topPos').innerHTML = top(pc, i => (i + 1) + '. ' + POS[i].n);
+  $('topSeg').innerHTML = top(sc, k => SEG[k]);
+  const al = A.filter(a => a.lvl > 0).sort((a, b) => b.lvl - a.lvl).slice(0, 8);
+  const viol = STAT.violators.slice(0, 5).map(a => `<li data-k="${esc(a.key)}" style="color:#fbbf24">⛔ ${esc(a.r.hikername)} menuju ${esc(POS[a.nx - 1].n)} (ditutup)<br><span class="mut">${esc(SEG[a.seg])}</span></li>`).join('');
+  $('alerts').innerHTML = viol + al.map(a => {
+    const where = a.atPos ? 'di ' + POS[a.pos - 1].n : SEG[a.seg];
+    let extra = '';
+    if (a.lvl === 4) { const ll = toLatLon(a.target.x, a.target.z); extra = `<br><span class="mut">📍 ${ll.lat.toFixed(5)}, ${ll.lon.toFixed(5)} · ${elevAt(a.target)} m</span>`; }
+    return `<li data-k="${esc(a.key)}" style="color:#${LV_COL[a.lvl].toString(16)}">${a.lvl === 4 ? '🆘 ' : ''}${esc(a.r.hikername)} · ${LV_NAME[a.lvl]}<br><span class="mut">${esc(where)}</span>${extra}</li>`;
+  }).join('') || (viol ? '' : '<li class="mut">aman</li>');
+  $('sTot').textContent = A.length; $('sPos').textContent = pc.reduce((a, b) => a + b, 0); $('sAl').textContent = A.filter(a => a.lvl > 0).length;
+  paintStatus(); applyToggles(); styleHikers(); showDetail();
+}
+
+function paintStatus() {
+  if (!STAT) return;
+  for (let i = 0; i < 9; i++) { drawLabel(i); rings[i].visible = STAT.pos[i + 1].hold; }
+  for (let k = 0; k < 8; k++) { const sw = MC.segmentWeather(WX, k); setRain(k, sw ? sw.cls.lv : 0); }
+  const b = $('banner');
+  if (STAT.anyHold) {
+    b.innerHTML = STAT.banner.map(x => `<div>${esc(x)}</div>`).join('') + (STAT.violators.length ? `<div class="viol">⚠️ ${STAT.violators.length} pendaki sedang menuju pos yang ditutup</div>` : '');
+    b.style.display = 'block';
+  } else b.style.display = 'none';
+  $('posList').innerHTML = POS.map((p, i) => {
+    const st = STAT.pos[i + 1], SS = MC.STATUS[st.status], w = WX && WX[i + 1];
+    return `<li data-p="${i}"><span style="color:${SS.color}">${SS.icon}</span> ${i + 1}. ${esc(p.n)}<span class="mut"> — ${w ? w.cls.icon + ' ' + w.mm.toFixed(1) + ' mm' : '☁️ n/a'} · 👥 ${st.occ}${st.cap ? '/' + st.cap : ''}</span></li>`;
+  }).join('');
+  const el = $('wxInfo'); let txt, bad = false;
+  if (WX && WX.demo) txt = '🧪 DEMO — cuaca contoh';
+  else if (WX) {
+    const age = Date.now() - (+new Date(WX.updated)), clock = new Date(WX.updated).toLocaleTimeString('id-ID');
+    if (age > MC.WEATHER_STALE_MS) { txt = '⚠️ Data cuaca basi (' + clock + ') — aturan hujan memakai data lama'; bad = true; }
+    else txt = '🌦️ Diperbarui ' + clock + ' · tiap 10 menit' + (wxErr ? ' · ⚠️ pembaruan terakhir gagal' : '');
+  } else { txt = '⚠️ Cuaca tidak tersedia' + (wxErr ? ': ' + wxErr : '') + ' — penahanan karena hujan TIDAK aktif (kapasitas tetap aktif)'; bad = true; }
+  el.textContent = txt; el.className = 'mut' + (bad ? ' bad' : '');
+}
+async function refreshWeather() {
+  try { WX = DEMO ? MC.demoWeather() : await MC.fetchWeather(); wxErr = ''; } catch (e) { wxErr = e.message; }   // data lama tetap dipakai bila gagal
+  render();
+}
+
+// sorot hasil pencarian / pendaki terpilih, redupkan sisanya
+function matches(a, q) { return (a.r.hikername + ' ' + a.r.nik).toLowerCase().includes(q); }
+function styleHikers() {
+  const q = $('q').value.trim().toLowerCase();
+  HM.forEach(m => {
+    const a = m.userData, hit = !q || matches(a, q), sel = a.key === selKey;
+    m.material = hit ? MAT[a.lvl] : DIM; m.scale.setScalar(sel ? 1.9 : (q && hit ? 1.5 : 1));
+  });
+  $('qres').innerHTML = q ? LAST.filter(a => matches(a, q)).slice(0, 6).map(a =>
+    `<li data-k="${esc(a.key)}">${esc(a.r.hikername)} <span class="mut">· ${esc(a.atPos ? POS[a.pos - 1].n : SEG[a.seg])}</span></li>`).join('') || '<li class="mut">tidak ditemukan</li>' : '';
+}
+function selectInfo(o, focus) {
+  selInfo = o; selKey = null;
+  if (focus && o && o.type === 'pos') { cam.t.copy(P[o.i]); cam.r = Math.min(cam.r, 70); updCam(); }
+  styleHikers(); showDetail();
+}
+function select(key, focus) {
+  selInfo = null; selKey = key; const m = HM.get(key);
+  if (m && focus) { cam.t.copy(m.position); cam.r = Math.min(cam.r, 55); updCam(); }
+  styleHikers(); showDetail();
+}
+function wxBlock(w, note) {
+  if (!w) return '<div class="mut">☁️ Data cuaca tidak tersedia</div>';
+  const fc = w.forecast.length ? '<table>' + w.forecast.map(f => `<tr><td>${esc(String(f.time).slice(-5))}</td><td style="color:${f.cls.color}">${f.cls.icon} ${f.mm} mm · ${esc(f.cls.name)}</td></tr>`).join('') + '</table>' : '';
+  return `<div style="margin-top:6px;color:${w.cls.color}"><b>${w.cls.icon} ${w.mm.toFixed(1)} mm/jam — ${esc(w.cls.name)}</b></div>
+    <div class="mut">BMKG: ${esc(w.cls.bmkg)}${w.condition ? ' · ' + esc(w.condition) : ''}${note ? ' · ' + note : ''}</div>
+    <div>${w.temp != null ? '🌡️ ' + Math.round(w.temp) + '°C · ' : ''}${w.humidity != null ? '💧 ' + w.humidity + '% · ' : ''}${w.wind != null ? '💨 ' + Math.round(w.wind) + ' km/j' : ''}</div>
+    ${fc ? '<div class="mut" style="margin-top:4px">Prakiraan 3 jam ke depan</div>' + fc : ''}`;
+}
+function infoDetail(o) {
+  if (!STAT) return '';
+  let h = '<span class="x" id="dx">✖</span>';
+  if (o.type === 'pos') {
+    const i = o.i, p = POS[i], st = STAT.pos[i + 1], SS = MC.STATUS[st.status], pct = st.cap ? Math.min(100, st.occ / st.cap * 100) : 0;
+    h += `<h2>${i + 1}. ${esc(p.full)}</h2><div class="mut">${elevAt(P[i])} mdpl (DEM)</div>
+      <div style="margin:6px 0"><b style="color:${SS.color}">${SS.icon} ${SS.label}</b></div>`;
+    st.holds.forEach(x => h += `<div class="sos" style="background:#3a1010;border-color:#ef4444">⛔ ${esc(x.text)}</div>`);
+    if (st.zone) h += '<div class="mut">📍 Pos ini berada di ZONA HUJAN (hujan ≥ sedang)</div>';
+    h += st.cap == null
+      ? `<div>👥 <b>${st.occ}</b> orang <span class="mut">(tanpa batas)</span></div>`
+      : `<div>👥 <b>${st.occ}</b> / ${st.cap} orang${st.inb ? ` <span class="mut">(+${st.inb} sedang menuju)</span>` : ''}</div><div class="wxbar"><div style="width:${pct}%;background:${st.full ? '#ef4444' : st.near ? '#eab308' : '#22c55e'}"></div></div>`;
+    return h + wxBlock(st.weather);
+  }
+  const k = o.k, sw = MC.segmentWeather(WX, k), blocked = STAT.entryBlocked[k + 2];
+  h += `<h2>${esc(SEG[k])}</h2><div class="mut">${Math.round(segLen[k])} m · ${LASTSC[k]} pendaki di segmen</div>`;
+  if (blocked) h += `<div class="sos" style="background:#3a1010;border-color:#ef4444">⛔ Masuk ke ${esc(POS[k + 1].n)} sedang DITUTUP</div>`;
+  return h + wxBlock(sw, 'terburuk dari dua pos di ujung segmen');
+}
+function showDetail() {
+  const d = $('detail');
+  if (selInfo) { d.innerHTML = infoDetail(selInfo); d.style.display = 'block'; $('dx').onclick = () => { selInfo = null; showDetail(); }; return; }
+  const m = selKey && HM.get(selKey);
+  if (!m) { d.style.display = 'none'; return; }
+  const a = m.userData, r = a.r, tp = a.target, ll = toLatLon(tp.x, tp.z);
+  let where;
+  if (a.atPos) where = 'Di <b>' + esc(POS[a.pos - 1].n) + '</b>';
+  else { const L = segLen[a.seg]; where = `${esc(SEG[a.seg])}<br>${Math.round(a.t * L)} m dari ${esc(POS[a.pos - 1].n)} · ${Math.round((1 - a.t) * L)} m ke ${esc(POS[a.nx - 1].n)}`; }
+  const rows = POS.map((p, i) => { const t = r['timePos' + (i + 1)], pr = r['PredPos' + (i + 1)];
+    return `<tr><td>${i + 1}. ${esc(p.n)}</td><td>${t ? '✅ ' + esc(fmt(t)) : (pr ? '⏳ ' + esc(fmt(pr)) : '–')}</td></tr>`; }).join('');
+  const maps = `https://www.google.com/maps?q=${ll.lat.toFixed(6)},${ll.lon.toFixed(6)}`;
+  d.innerHTML = `<span class="x" id="dx">✖</span><h2>${esc(r.hikername)}</h2><div class="mut">${esc(r.groupname)}${r.nik ? ' · NIK ' + esc(r.nik) : ''}</div>
+    <div style="margin:6px 0">${a.dir < 0 ? '◆ Turun' : '● Naik'} · ${esc(r.latestStatus)} · <b style="color:#${LV_COL[a.lvl].toString(16)}">${LV_NAME[a.lvl]}</b>${a.delay > 0 ? ' (+' + a.delay.toFixed(1) + ' jam)' : ''}</div>
+    <div>${where}</div>
+    ${a.lvl === 4 ? `<div class="sos">🆘 <b>SOS</b> — perkiraan lokasi untuk tim SAR:<br>${ll.lat.toFixed(6)}, ${ll.lon.toFixed(6)} · ±${elevAt(tp)} mdpl<br><a href="${maps}" target="_blank" rel="noopener">Buka di Google Maps</a></div>` : `<div class="mut">≈ ${ll.lat.toFixed(5)}, ${ll.lon.toFixed(5)} · ${elevAt(tp)} mdpl · <a href="${maps}" target="_blank" rel="noopener">peta</a></div>`}
+    <div class="mut" style="margin-top:4px">Posisi antar pos adalah estimasi dari waktu check-in & ETA.</div>
+    <table>${rows}</table>`;
+  d.style.display = 'block'; $('dx').onclick = () => { selKey = null; styleHikers(); showDetail(); };
+}
+
+// ====== DATA (live / demo) ======
+async function load() {
+  let msg;
+  try {
+    if (DEMO) { ALL = MC.demoHikers(); msg = '🧪 Mode DEMO (data contoh)'; }
+    else {
+      const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 15000);
+      const res = await fetch(APPS_SCRIPT_URL + '?dashboard=true', {signal:ctl.signal}); clearTimeout(to);
+      const j = await res.json(); if (!j.success) throw new Error('respon tidak sukses');
+      ALL = j.data.map(r => {
+        const o = {hikername:String(r.hikername || ''), nik:String(r.nik || ''), groupname:r.groupname || 'Individu', uniqueid:String(r.uniqueid || ''), latestStatus:r.LatestStatus || ''};
+        for (let i = 1; i <= 9; i++) { o['timePos' + i] = r['timePos' + i] || ''; o['PredPos' + i] = r['PredPos' + i] || ''; }
+        return o;
+      });
+      msg = 'Data live · refresh tiap 30 detik';
+    }
+  } catch (e) {   // JANGAN tampilkan data palsu pada mode live: pertahankan data terakhir & beri peringatan
+    msg = '⚠️ Data live gagal dimuat (' + (e.name === 'AbortError' ? 'timeout' : e.message) + ')' + (ALL.length ? ' — menampilkan data terakhir' : '') + ' · tambahkan ?demo untuk data contoh';
+  }
+  if (!demReal) msg += ' · ⚠️ medan perkiraan (elevasi gagal diunduh)';
+  $('src').textContent = msg; render();
+}
+
+// ====== INTERAKSI ======
+function applyToggles() {
+  hg.visible = $('tgH').checked;
+  posLabels.forEach(l => l.sp.visible = $('tgL').checked);
+}
+['tgH', 'tgL'].forEach(id => $(id).addEventListener('change', applyToggles));
+$('tgN').addEventListener('change', e => {   // mode malam
+  const n = e.target.checked; hemi.intensity = n ? .22 : 1.0; sun.intensity = n ? .12 : .7; scene.background.set(n ? 0x03060d : 0x0b1220);
+});
+POS.forEach((p, i) => $('focus').add(new Option('Fokus: ' + (i + 1) + '. ' + p.n, i)));
+$('focus').addEventListener('change', e => { cam.t.copy(P[+e.target.value]); cam.r = 45; updCam(); });
+$('reset').addEventListener('click', () => { Object.assign(cam, {r:cam.home.r, th:cam.home.th, ph:cam.home.ph}); cam.t.copy(cam.home.t); updCam(); });
+$('q').addEventListener('input', styleHikers);
+$('posList').addEventListener('click', e => { const li = e.target.closest('li[data-p]'); if (li) selectInfo({type:'pos', i:+li.dataset.p}, true); });
+['qres', 'alerts'].forEach(id => $(id).addEventListener('click', e => { const li = e.target.closest('li[data-k]'); if (li) select(li.dataset.k, true); }));
+
+const ptrs = new Map(), ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), tip = $('tip');
+canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY, b:e.button, mv:0}); });
+canvas.addEventListener('pointerup', e => { const p = ptrs.get(e.pointerId); ptrs.delete(e.pointerId); if (p && p.mv < 6 && p.b === 0) pick(e); });
+canvas.addEventListener('pointercancel', e => ptrs.delete(e.pointerId));
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('wheel', e => { e.preventDefault(); cam.r = clamp(cam.r * (1 + e.deltaY * .001), 12, 900); updCam(); }, {passive:false});
+canvas.addEventListener('pointermove', e => {
+  const p = ptrs.get(e.pointerId);
+  if (!p) return hover(e);
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.mv += Math.abs(dx) + Math.abs(dy);
+  if (ptrs.size === 2) {
+    const o = [...ptrs.entries()].find(([id]) => id !== e.pointerId)[1], d0 = Math.hypot(p.x - o.x, p.y - o.y);
+    p.x = e.clientX; p.y = e.clientY; cam.r = clamp(cam.r * d0 / Math.max(1, Math.hypot(p.x - o.x, p.y - o.y)), 12, 900);
+  } else if (p.b === 2 || e.shiftKey) {
+    const k = cam.r * .0016, rt = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0), up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+    cam.t.addScaledVector(rt, -dx * k).addScaledVector(up, dy * k);
+  } else { cam.th -= dx * .006; cam.ph = clamp(cam.ph - dy * .006, .12, 1.52); }
+  p.x = e.clientX; p.y = e.clientY; updCam();
+});
+function hikerHit(e) {
+  mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(mouse, camera);
+  return hg.visible ? ray.intersectObjects(hg.children.filter(o => o.userData.r))[0] : null;
+}
+function infoHit(e) {   // klik/hover pada pos (batang/label) atau segmen jalur
+  mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(mouse, camera);
+  const objs = [...posBars, ...posLabels.map(l => l.sp), ...segMeshes].filter(o => o.visible);
+  const h = ray.intersectObjects(objs)[0]; if (!h) return null;
+  let i = posBars.indexOf(h.object); if (i < 0) i = posLabels.findIndex(l => l.sp === h.object);
+  return i >= 0 ? {type:'pos', i} : {type:'seg', k:segMeshes.indexOf(h.object)};
+}
+function pick(e) {
+  const hit = hikerHit(e); if (hit) { select(hit.object.userData.key, true); return; }
+  const ih = infoHit(e); if (ih) selectInfo(ih, false); else select(null, false);
+}
+function hover(e) {
+  const hit = hikerHit(e);
+  if (hit) {
+    const a = hit.object.userData, r = a.r;
+    tip.innerHTML = `<b>${esc(r.hikername)}</b><br>${esc(r.groupname)}<br>${esc(r.latestStatus)} · ${a.dir < 0 ? '◆ turun' : '● naik'}<br>` +
+      (a.atPos ? 'Di ' + esc(POS[a.pos - 1].n) : esc(SEG[a.seg])) + `<br>Level: ${LV_NAME[a.lvl]}${a.delay > 0 ? ' (+' + a.delay.toFixed(1) + ' jam)' : ''}<br><span class="mut">klik untuk detail</span>`;
+    tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px'; tip.style.display = 'block'; return;
+  }
+  const ih = infoHit(e);
+  if (ih && STAT) {
+    if (ih.type === 'pos') { const st = STAT.pos[ih.i + 1], SS = MC.STATUS[st.status], w = st.weather;
+      tip.innerHTML = `<b>${ih.i + 1}. ${esc(POS[ih.i].n)}</b><br>${w ? w.cls.icon + ' ' + w.mm.toFixed(1) + ' mm · ' + esc(w.cls.name) : '☁️ cuaca n/a'}<br>👥 ${st.occ}${st.cap ? '/' + st.cap : ''} · ${SS.icon} ${SS.label}<br><span class="mut">klik untuk detail</span>`; }
+    else { const sw = MC.segmentWeather(WX, ih.k);
+      tip.innerHTML = `<b>${esc(SEG[ih.k])}</b><br>${sw ? sw.cls.icon + ' ' + sw.mm.toFixed(1) + ' mm · ' + esc(sw.cls.name) : '☁️ cuaca n/a'}<br>${LASTSC[ih.k]} pendaki di segmen<br><span class="mut">klik untuk detail</span>`; }
+    tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px'; tip.style.display = 'block'; return;
+  }
+  tip.style.display = 'none';
+  const t = terrain && ray.intersectObject(terrain)[0];
+  if (t) { const ll = toLatLon(t.point.x, t.point.z); $('geo').textContent = `${ll.lat.toFixed(5)}, ${ll.lon.toFixed(5)} · ${elevAt(t.point)} mdpl`; }
+}
+
+// ====== START ======
+(async function init() {
+  $('src').textContent = 'Mengunduh data elevasi Gunung Gede…';
+  try { DEM = await loadDEM(); } catch (e) { console.warn(e); demReal = false; DEM = synthDEM(); }
+  buildWorld(); loadImagery();
+  POS.forEach((p, i) => { $('focus').options[i].text = 'Fokus: ' + (i + 1) + '. ' + p.n + ' (' + elevAt(P[i]) + ' m)'; });
+  (function animate(t) {   // eslint-disable-line
+    requestAnimationFrame(animate);
+    if ($('tgR').checked) { cam.th += .002; updCam(); }
+    HM.forEach(m => { const tg = m.userData.target; if (tg) m.position.lerp(tg, .08); });   // geser halus ke posisi baru
+    const dt = Math.min(3, (t - (animate.last || t)) / 16.7); animate.last = t; stepRain(dt);
+    rings.forEach(r => { if (r.visible) r.material.opacity = .45 + .35 * Math.sin(t / 300); });
+    BEACON_MAT.opacity = .35 + .3 * Math.sin(t / 250);
+    renderer.render(scene, camera);
+  })(0);
+  await load(); await refreshWeather();
+  setInterval(load, 30000); setInterval(render, 15000); setInterval(refreshWeather, MC.WEATHER_REFRESH_MS);
+})();
+</script>
+</body>
+</html>
